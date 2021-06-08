@@ -1,0 +1,29 @@
+{
+  "name": "blockchain-server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon app"
+  },
+  "nodemonConfig": {
+    "ignore": ["keys/*"]
+ },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "console-stamp": "^3.0.2",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.0.0",
+    "debug": "~2.6.9",
+    "dotenv": "^8.2.0",
+    "elliptic": "^6.5.4",
+    "express": "~4.16.1",
+    "hex-to-binary": "^1.0.1",
+    "http-errors": "~1.6.3",
+    "lodash": "^4.17.21",
+    "morgan": "~1.9.1",
+    "socket.io": "^4.0.1",
+    "socket.io-client": "^4.0.1",
+    "ws": "^7.4.5"
+  }
+}
