@@ -15,14 +15,15 @@ app.use(cors({
   origin: URL
 }));
 
-const { saveToFile, readFromFile } = require('./models/File')
-const { getTransactionPool, setPool } = require('./models/transactionPool');
+const { saveToFile, readFromFile } = require('./models/File');
 const { getLocationId, isValidAddress, validateLocation, createLocation,
   getLocationPool, setLocationPool, addToLocationPool, findLocation } = require('./models/location');
+  
+const { getTransactionPool, setPool } = require('./models/transactionPool');
 
 const { getPublicFromWallet, initWallet } = require('./models/wallet');
 const { generateNextBlock, getBlockchain, generatenextBlockWithTransaction,
-  getAccountBalance, getMyUnspentTransactionOutputs, getUnspentTxOuts, sendTransaction,
+  getAccountBalance, getMyUnspentTransactionOutputs, getUnspentTxOuts, sendTransaction, sendTransactionV2,
   getFinishTransaction, replaceChain, sendTransactionGuess, generateNextBlockGuess, getAccountBalanceGuess,
   getFinishTransactionGuess
 } = require('./models/Blockchain');
@@ -38,6 +39,19 @@ initWallet();
 const blockchainLocation = 'keys/chain.json';
 const poolLocation = 'keys/tx.json';
 const locateLocation = 'keys/location.json';
+
+if (fs.existsSync(locateLocation)) {
+  const data = readFromFile(locateLocation)
+  if (data && data.length > 1) {
+    setLocationPool(data)
+  }
+  else {
+    saveToFile(getLocationPool(), locateLocation)
+  }
+}
+else {
+  saveToFile(getLocationPool(), locateLocation)
+}
 
 if (fs.existsSync(blockchainLocation)) {
   const data = readFromFile(blockchainLocation)
@@ -63,19 +77,6 @@ if (fs.existsSync(poolLocation)) {
 }
 else {
   saveToFile([], poolLocation)
-}
-
-if (fs.existsSync(locateLocation)) {
-  const data = readFromFile(locateLocation)
-  if (data && data.length > 1) {
-    setLocationPool(data)
-  }
-  else {
-    saveToFile(getLocationPool(), locateLocation)
-  }
-}
-else {
-  saveToFile(getLocationPool(), locateLocation)
 }
 
 // route
@@ -208,6 +209,25 @@ app.post('/sendTransaction', (req, res) => {
   }
 });
 
+app.post('/sendTransactionV2', (req, res) => {
+  try {
+    const address = req.body.address;
+    const amount = Number(req.body.amount);
+    if (address === undefined || amount === undefined) {
+      throw Error('invalid address or amount');
+    }
+
+    const temp = createLocation("name1", "location1");
+    const pool = getLocationPool();
+    const privateKey ="U2FsdGVkX1+jGVsUy3MXki9d+3AJnnhRsVmJ2TXpOegyLa9AWWuo8dN3fBE5tL2qYYeirEDAVAiEo8XjABLGcwrvdZ+3RO/Et5UhOrVvS68=";
+    const resp = sendTransactionV2(privateKey, amount, temp, pool[1]);
+    res.send(resp);
+  } catch (e) {
+    console.log(e.message);
+    res.status(400).send(e.message);
+  }
+});
+
 app.post('/sendTransactionGuess', (req, res) => {
   try {
     const resp = sendTransactionGuess(req.body.transaction);
@@ -245,5 +265,3 @@ app.listen(httpPort, () => {
 // websocket for other server
 initP2PServer(p2pPort);
 
-const pool = getLocationPool();
-console.log(pool);

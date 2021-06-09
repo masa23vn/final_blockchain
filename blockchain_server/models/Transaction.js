@@ -5,6 +5,7 @@ const _ = require('lodash');
 const ec = new ecdsa.ec('secp256k1');
 
 const COINBASE_AMOUNT = 50;
+const { validateLocation } = require('./Location');
 
 class UnspentTxOut {
     constructor(txOutId, txOutIndex, address, amount) {
@@ -31,13 +32,15 @@ class TxOut {
 }
 
 class Transaction {
-    constructor(id, txIns, txOuts, amount, sender, receiver) {
+    constructor(id, txIns, txOuts, amount, sender, receiver, fromLocation, toLocation) {
         this.id = id;
         this.txIns = txIns || [];
         this.txOuts = txOuts || [];
         this.amount = amount;
         this.sender = sender;
         this.receiver = receiver;
+        this.fromLocation = fromLocation
+        this.toLocation = toLocation
     }
 }
 
@@ -91,6 +94,32 @@ const validateTransaction = (transaction, aUnspentTxOuts) => {
     if (!validAddressTxOutValues) {
         console.log('txOuts address is wrong in tx: ' + transaction.id);
         return false;
+    }
+
+    if (transaction.fromLocation) {
+        if (!validateLocation(transaction.fromLocation)) {
+            console.log('From location is wrong in tx: ' + transaction.id);
+            return false;
+        }
+
+        const foundLocation = locationPool.find(i => i.id === transaction.fromLocation.id);
+        if (!foundLocation) {
+            console.log('From location not found in tx: ' + transaction.id);
+            return false;
+        }
+    }
+
+    if (transaction.toLocation) {
+        if (!validateLocation(transaction.toLocation)) {
+            console.log('To location is wrong in tx: ' + transaction.id);
+            return false;
+        }
+
+        const foundLocation = locationPool.find(i => i.id === transaction.toLocation.id);
+        if (!foundLocation) {
+            console.log('To location not found in tx: ' + transaction.id);
+            return false;
+        }
     }
 
     return true;

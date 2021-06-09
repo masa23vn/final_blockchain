@@ -7,7 +7,7 @@ const ec = new ecdsa.ec('secp256k1');
 
 const COINBASE_AMOUNT = 50;
 
-let locationPool = [];
+global.locationPool = [];
 
 // class Location
 class Location {
@@ -119,6 +119,7 @@ const validateLocationPool = (aLocations) => {
 const setLocationPool = (aLocations) => {
     if (validateLocationPool(aLocations)) {
         locationPool = _.cloneDeep(aLocations);
+        const { saveToFile } = require('./File')
         saveToFile(locationPool, 'keys/location.json')
     }
 }

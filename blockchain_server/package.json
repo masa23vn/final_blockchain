@@ -7,8 +7,10 @@
     "dev": "nodemon app"
   },
   "nodemonConfig": {
-    "ignore": ["keys/*"]
- },
+    "ignore": [
+      "keys/*"
+    ]
+  },
   "dependencies": {
     "axios": "^0.21.1",
     "console-stamp": "^3.0.2",
@@ -21,6 +23,7 @@
     "hex-to-binary": "^1.0.1",
     "http-errors": "~1.6.3",
     "lodash": "^4.17.21",
+    "madge": "^4.0.2",
     "morgan": "~1.9.1",
     "socket.io": "^4.0.1",
     "socket.io-client": "^4.0.1",

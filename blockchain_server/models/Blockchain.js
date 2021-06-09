@@ -2,7 +2,7 @@ const CryptoJS = require("crypto-js");
 const _ = require('lodash');
 const hexToBinary = require('hex-to-binary');
 const { saveToFile } = require('./File')
-const { UnspentTxOut, Transaction, processTransactions, getCoinbaseTransaction, isValidAddress } = require('./transaction');
+const { UnspentTxOut, Transaction, processTransactions, getCoinbaseTransaction, isValidAddress, getPublicKey } = require('./transaction');
 const { createTransaction, findUnspentTxOuts, getBalance, getPrivateFromWallet, getPublicFromWallet } = require('./wallet');
 const { addToTransactionPool, getTransactionPool, updateTransactionPool } = require('./transactionPool');
 
@@ -132,6 +132,15 @@ const getAccountBalanceGuess = (publicKey) => {
 
 const sendTransaction = (address, amount) => {
     const tx = createTransaction(address, amount, getPrivateFromWallet(), getUnspentTxOuts(), getTransactionPool());
+    addToTransactionPool(tx, getUnspentTxOuts());
+    const { broadCastTransactionPool } = require('../socket/p2p')
+    broadCastTransactionPool();
+    return tx;
+};
+
+const sendTransactionV2 = (address, amount, from, to) => {
+    const publicKey = getPublicKey(address)
+    const tx = createTransaction(publicKey, amount, getPrivateFromWallet(), getUnspentTxOuts(), getTransactionPool(), from, to);
     addToTransactionPool(tx, getUnspentTxOuts());
     const { broadCastTransactionPool } = require('../socket/p2p')
     broadCastTransactionPool();
@@ -320,7 +329,7 @@ module.exports = {
     replaceChain,
     addBlock,
     getUnspentTxOuts,
-    sendTransaction,
+    sendTransaction, sendTransactionV2,
     handleReceivedTransaction,
     getFinishTransaction,
     getMyUnspentTransactionOutputs,

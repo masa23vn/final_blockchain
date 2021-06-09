@@ -56,6 +56,9 @@ const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
 const findTxOutsForAmount = (amount, myUnspentTxOuts) => {
     let currentAmount = 0;
     const includedUnspentTxOuts = [];
+    if (amount === 0) {
+        return { includedUnspentTxOuts, leftOverAmount: 0};
+    };
     for (const myUnspentTxOut of myUnspentTxOuts) {
         includedUnspentTxOuts.push(myUnspentTxOut);
         currentAmount = currentAmount + myUnspentTxOut.amount;
@@ -100,7 +103,7 @@ const filterTxPoolTxs = (unspentTxOuts, transactionPool) => {
     return _.without(unspentTxOuts, ...removable);
 };
 
-const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, txPool) => {
+const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, txPool, from, to) => {
 
     const myAddress = getPublicKey(privateKey);
     const myUnspentTxOutsA = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
@@ -125,6 +128,8 @@ const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, t
     tx.receiver = receiverAddress;
     tx.sender = myAddress;
     tx.amount = amount;
+    tx.fromLocation = from;
+    tx.toLocation = to;
 
     tx.txIns = tx.txIns.map((txIn, index) => {
         txIn.signature = signTxIn(tx, index, privateKey, unspentTxOuts);
