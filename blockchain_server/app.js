@@ -17,6 +17,9 @@ app.use(cors({
 
 const { readPoolFromFile, readBlockchainFromFile, saveBlockchainToFile, savePoolToFile } = require('./models/File')
 const { getTransactionPool, setPool } = require('./models/transactionPool');
+const { getLocationId, isValidAddress, validateLocation, createLocation,
+  getLocationPool, setLocationPool, addToLocationPool, findLocation } = require('./models/location');
+
 const { getPublicFromWallet, initWallet } = require('./models/wallet');
 const { generateNextBlock, getBlockchain, generatenextBlockWithTransaction,
   getAccountBalance, getMyUnspentTransactionOutputs, getUnspentTxOuts, sendTransaction,
@@ -226,3 +229,10 @@ app.listen(httpPort, () => {
 
 // websocket for other server
 initP2PServer(p2pPort);
+
+const temp = createLocation("name1", "location1");
+addToLocationPool(temp);
+const temp2 = createLocation("name2", "location2");
+addToLocationPool(temp2);
+const pool = getLocationPool();
+console.log(pool);
