@@ -1,6 +1,7 @@
 const CryptoJS = require("crypto-js");
 const ecdsa = require('elliptic');
 const _ = require('lodash');
+const { saveToFile } = require('./File')
 
 const ec = new ecdsa.ec('secp256k1');
 
@@ -118,6 +119,7 @@ const validateLocationPool = (aLocations) => {
 const setLocationPool = (aLocations) => {
     if (validateLocationPool(aLocations)) {
         locationPool = _.cloneDeep(aLocations);
+        saveToFile(locationPool, 'keys/location.json')
     }
 }
 
@@ -134,6 +136,7 @@ const addToLocationPool = (location) => {
     }
 
     locationPool.push(location);
+    saveToFile(locationPool, 'keys/location.json')
 };
 
 const findLocation = (locationId) => {

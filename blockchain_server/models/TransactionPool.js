@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { savePoolToFile } = require('./File')
+const { saveToFile } = require('./File')
 const { Transaction, TxIn, UnspentTxOut, validateTransaction } = require('./transaction');
 const fs = require('fs');
 
@@ -30,7 +30,7 @@ const addToTransactionPool = (tx, unspentTxOuts) => {
         throw Error('Trying to add invalid tx to pool');
     }
     transactionPool.push(tx);
-    savePoolToFile(transactionPool)
+    saveToFile(transactionPool, 'keys/tx.json')
 };
 
 const hasTxIn = (txIn, unspentTxOuts) => {
@@ -52,7 +52,7 @@ const updateTransactionPool = (unspentTxOuts) => {
     }
     if (invalidTxs.length > 0) {
         transactionPool = _.without(transactionPool, ...invalidTxs);
-        savePoolToFile(transactionPool)
+        saveToFile(transactionPool, 'keys/tx.json')
     }
 };
 

@@ -1,7 +1,7 @@
 const CryptoJS = require("crypto-js");
 const _ = require('lodash');
 const hexToBinary = require('hex-to-binary');
-const { saveBlockchainToFile } = require('./File')
+const { saveToFile } = require('./File')
 const { UnspentTxOut, Transaction, processTransactions, getCoinbaseTransaction, isValidAddress } = require('./transaction');
 const { createTransaction, findUnspentTxOuts, getBalance, getPrivateFromWallet, getPublicFromWallet } = require('./wallet');
 const { addToTransactionPool, getTransactionPool, updateTransactionPool } = require('./transactionPool');
@@ -58,7 +58,7 @@ const generateRawNextBlock = (blockData) => {
     if (addBlock(newBlock)) {
         const { broadcastLatest } = require('../socket/p2p')
         broadcastLatest();
-        saveBlockchainToFile(blockchain)
+        saveToFile(blockchain, 'keys/chain.json')
         return newBlock;
     } else {
         return null;
@@ -273,7 +273,7 @@ const replaceChain = (newBlocks) => {
         const { broadcastLatest } = require('../socket/p2p')
         broadcastLatest();
 
-        saveBlockchainToFile(blockchain)
+        saveToFile(blockchain, 'keys/chain.json')
     } else {
         console.log('Received blockchain invalid');
     }

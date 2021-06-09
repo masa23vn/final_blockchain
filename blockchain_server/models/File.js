@@ -1,16 +1,16 @@
 const fs = require('fs');
 
-const saveBlockchainToFile = (blockchain) => {
+const saveToFile = (blockchain, filename) => {
     try {
-        fs.writeFileSync('keys/chain.json', JSON.stringify(blockchain));
+        fs.writeFileSync(filename, JSON.stringify(blockchain));
     } catch (err) {
         console.log(err)
     }
 }
 
-const readBlockchainFromFile = () => {
+const readFromFile = (filename) => {
     try {
-        const file = fs.readFileSync('keys/chain.json', 'utf8')
+        const file = fs.readFileSync(filename, 'utf8')
         if (file === '') {
             return null
         }
@@ -22,32 +22,8 @@ const readBlockchainFromFile = () => {
     }
 }
 
-const savePoolToFile = (transactionPool) => {
-    try {
-        fs.writeFileSync('keys/tx.json', JSON.stringify(transactionPool));
-    } catch (err) {
-        console.log(err)
-    }
-
-}
-
-const readPoolFromFile = () => {
-    try {
-        const file = fs.readFileSync('keys/tx.json', 'utf8')
-        if (file === '') {
-            return null
-        }
-        const data = JSON.parse(file);
-        return data
-    } catch (err) {
-        console.log(err)
-        return null
-    }
-}
 
 module.exports = {
-    saveBlockchainToFile,
-    readBlockchainFromFile,
-    savePoolToFile,
-    readPoolFromFile
+    saveToFile,
+    readFromFile,
 };

@@ -15,7 +15,7 @@ app.use(cors({
   origin: URL
 }));
 
-const { readPoolFromFile, readBlockchainFromFile, saveBlockchainToFile, savePoolToFile } = require('./models/File')
+const { saveToFile, readFromFile } = require('./models/File')
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 const { getLocationId, isValidAddress, validateLocation, createLocation,
   getLocationPool, setLocationPool, addToLocationPool, findLocation } = require('./models/location');
@@ -37,30 +37,45 @@ initWallet();
 // read blockchain and pool file
 const blockchainLocation = 'keys/chain.json';
 const poolLocation = 'keys/tx.json';
+const locateLocation = 'keys/location.json';
+
 if (fs.existsSync(blockchainLocation)) {
-  const data = readBlockchainFromFile()
+  const data = readFromFile(blockchainLocation)
   if (data && data.length > 1) {
     replaceChain(data)
   }
   else {
-    saveBlockchainToFile(getBlockchain())
+    saveToFile(getBlockchain(), blockchainLocation)
   }
 }
 else {
-  saveBlockchainToFile(getBlockchain())
+  saveToFile(getBlockchain(), blockchainLocation)
 }
 
 if (fs.existsSync(poolLocation)) {
-  const data = readPoolFromFile()
+  const data = readFromFile(poolLocation)
   if (data) {
     setPool(data)
   }
   else {
-    savePoolToFile([])
+    saveToFile([], poolLocation)
   }
 }
 else {
-  savePoolToFile([])
+  saveToFile([], poolLocation)
+}
+
+if (fs.existsSync(locateLocation)) {
+  const data = readFromFile(locateLocation)
+  if (data && data.length > 1) {
+    setLocationPool(data)
+  }
+  else {
+    saveToFile(getLocationPool(), locateLocation)
+  }
+}
+else {
+  saveToFile(getLocationPool(), locateLocation)
 }
 
 // route
@@ -230,9 +245,5 @@ app.listen(httpPort, () => {
 // websocket for other server
 initP2PServer(p2pPort);
 
-const temp = createLocation("name1", "location1");
-addToLocationPool(temp);
-const temp2 = createLocation("name2", "location2");
-addToLocationPool(temp2);
 const pool = getLocationPool();
 console.log(pool);

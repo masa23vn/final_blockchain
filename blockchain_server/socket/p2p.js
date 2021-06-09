@@ -3,7 +3,7 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 const { Server } = require('ws');
 const { addBlock, Block, getBlockchain, getLatestBlock, replaceChain, isValidBlockStructure, handleReceivedTransaction } = require('../models/Blockchain');
 const { getTransactionPool } = require('../models/transactionPool');
-const { getLocationPool } = require('../models/location');
+const { getLocationPool, addToLocationPool } = require('../models/location');
 
 const sockets = [];
 
@@ -104,7 +104,7 @@ const initMessageHandler = (ws) => {
                     }
                     receivedLocations.forEach((location) => {
                         try {
-                            handleReceivedLocation(location);
+                            addToLocationPool(location);
                             // if no error is thrown, location was indeed added to the pool
                             // let's broadcast location pool
                             broadCastLocationPool();
