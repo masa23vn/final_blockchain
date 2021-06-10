@@ -34,8 +34,8 @@ const initConnection = (ws) => {
     write(ws, queryChainLengthMsg());
     // wait until connected
     setTimeout(() => {
-        broadcast(queryTransactionPoolMsg());
         broadcast(queryLocationPoolMsg());
+        broadcast(queryTransactionPoolMsg());
     }, 500);
 };
 

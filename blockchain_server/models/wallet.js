@@ -2,7 +2,7 @@ const CryptoJS = require("crypto-js");
 const { ec } = require('elliptic');
 const _ = require('lodash');
 const { existsSync, readFileSync, unlinkSync, writeFileSync } = require('fs');
-const { getPublicKey, getTransactionId, signTxIn, Transaction, TxIn, TxOut } = require('./transaction');
+const { getPublicKey, getTransactionId, signTx, Transaction } = require('./transaction');
 
 const EC = new ec('secp256k1');
 const privateKeyLocation = 'keys/private_key';
@@ -43,98 +43,25 @@ const deleteWallet = () => {
     }
 };
 
-const getBalance = (address, unspentTxOuts) => {
-    return _(findUnspentTxOuts(address, unspentTxOuts))
-        .map((uTxO) => uTxO.amount)
-        .sum();
-};
-
-const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
-    return _.filter(unspentTxOuts, uTxO => uTxO.address === ownerAddress);
-};
-
-const findTxOutsForAmount = (amount, myUnspentTxOuts) => {
-    let currentAmount = 0;
-    const includedUnspentTxOuts = [];
-    if (amount === 0) {
-        return { includedUnspentTxOuts, leftOverAmount: 0};
-    };
-    for (const myUnspentTxOut of myUnspentTxOuts) {
-        includedUnspentTxOuts.push(myUnspentTxOut);
-        currentAmount = currentAmount + myUnspentTxOut.amount;
-        if (currentAmount >= amount) {
-            const leftOverAmount = currentAmount - amount;
-            return { includedUnspentTxOuts, leftOverAmount };
-        }
-    }
-    const eMsg = 'Cannot create transaction from the available unspent transaction outputs.' +
-        ' Required amount:' + amount + '. Available unspentTxOuts:' + JSON.stringify(myUnspentTxOuts);
-    throw Error(eMsg);
-};
-
-const createTxOuts = (receiverAddress, myAddress, amount, leftOverAmount) => {
-    const txOut1 = new TxOut(receiverAddress, amount);
-    if (leftOverAmount === 0) {
-        return [txOut1];
-    } else {
-        const leftOverTx = new TxOut(myAddress, leftOverAmount);
-        return [txOut1, leftOverTx];
-    }
-};
-
-const filterTxPoolTxs = (unspentTxOuts, transactionPool) => {
-    const txIns = _(transactionPool)
-        .map((tx) => tx.txIns)
-        .flatten()
-        .value();
-    const removable = [];
-    for (const unspentTxOut of unspentTxOuts) {
-        const txIn = _.find(txIns, (aTxIn) => {
-            return aTxIn.txOutIndex === unspentTxOut.txOutIndex && aTxIn.txOutId === unspentTxOut.txOutId;
-        });
-
-        if (txIn === undefined) {
-
-        } else {
-            removable.push(unspentTxOut);
-        }
-    }
-
-    return _.without(unspentTxOuts, ...removable);
-};
-
-const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, txPool, from, to) => {
+const createTransaction = (index, privateKey, from, to, isFinish, supplyID, itemID,
+    name, description, price, amount) => {
 
     const myAddress = getPublicKey(privateKey);
-    const myUnspentTxOutsA = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
-    const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
     // filter from unspentOutputs such inputs that are referenced in pool
 
-    const { includedUnspentTxOuts, leftOverAmount } = findTxOutsForAmount(amount, myUnspentTxOuts);
-
-    const createUnsignedTxIn = (unspentTxOut) => {
-        const txIn = new TxIn();
-        txIn.txOutId = unspentTxOut.txOutId;
-        txIn.txOutIndex = unspentTxOut.txOutIndex;
-        return txIn;
-    };
-
-    const unsignedTxIns = includedUnspentTxOuts.map(t => createUnsignedTxIn(t));
-
     const tx = new Transaction();
-    tx.txIns = unsignedTxIns;
-    tx.txOuts = createTxOuts(receiverAddress, myAddress, amount, leftOverAmount);
-    tx.id = getTransactionId(tx);
-    tx.receiver = receiverAddress;
-    tx.sender = myAddress;
-    tx.amount = amount;
+    tx.index = index;
     tx.fromLocation = from;
     tx.toLocation = to;
-
-    tx.txIns = tx.txIns.map((txIn, index) => {
-        txIn.signature = signTxIn(tx, index, privateKey, unspentTxOuts);
-        return txIn;
-    });
+    tx.isFinish = isFinish;
+    this.supplyID = supplyID;
+    tx.itemID = itemID;
+    tx.name = name;
+    tx.description = description;
+    tx.price = price;
+    tx.amount = amount;
+    tx.id = getTransactionId(tx);
+    tx.signature = signTx(tx, privateKey);
 
     return tx;
 };
@@ -143,9 +70,7 @@ module.exports = {
     createTransaction,
     getPublicFromWallet,
     getPrivateFromWallet,
-    getBalance,
     generatePrivateKey,
     initWallet,
     deleteWallet,
-    findUnspentTxOuts
 };

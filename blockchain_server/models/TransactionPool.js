@@ -9,10 +9,10 @@ const getTransactionPool = () => {
     return _.cloneDeep(transactionPool);
 };
 
-const setPool = (pool, unspentTxOuts) => {
+const setPool = (pool) => {
     let temp = [];
     for (let i = 0; i < pool.length; i++) {
-        if (!validateTransaction(pool[i], unspentTxOuts)) {
+        if (!validateTransaction(pool[i])) {
             continue
         }
         temp.push(pool[i])
@@ -20,34 +20,34 @@ const setPool = (pool, unspentTxOuts) => {
     transactionPool = _.cloneDeep(temp);
 }
 
-const addToTransactionPool = (tx, unspentTxOuts) => {
-
-    if (!validateTransaction(tx, unspentTxOuts)) {
+const addToTransactionPool = (tx) => {
+    if (!validateTransaction(tx)) {
         throw Error('Trying to add invalid tx to pool');
     }
 
     if (!isValidTxForPool(tx, transactionPool)) {
-        throw Error('Trying to add invalid tx to pool');
+        throw Error('Trying to add duplicated tx to pool');
     }
     transactionPool.push(tx);
     saveToFile(transactionPool, 'keys/tx.json')
 };
 
-const hasTxIn = (txIn, unspentTxOuts) => {
-    const foundTxIn = unspentTxOuts.find((uTxO) => {
-        return uTxO.txOutId === txIn.txOutId && uTxO.txOutIndex === txIn.txOutIndex;
-    });
-    return foundTxIn !== undefined;
-};
+const getTxFromBlockchain = (blockchain) => {
+    const txs = _(blockchain)
+        .map((block) => block.data)
+        .flatten()              // remove 1 outer array
+        .value();
 
-const updateTransactionPool = (unspentTxOuts) => {
+    return txs
+}
+
+const updateTransactionPool = (blockchain) => {
     const invalidTxs = [];
+    const txBlock = getTxFromBlockchain(blockchain);
     for (const tx of transactionPool) {
-        for (const txIn of tx.txIns) {
-            if (!hasTxIn(txIn, unspentTxOuts)) {
-                invalidTxs.push(tx);
-                break;
-            }
+        const txFound = txBlock.find(i => i.id === tx.id);
+        if (txFound) {
+            invalidTxs.push(tx);
         }
     }
     if (invalidTxs.length > 0) {
@@ -56,24 +56,9 @@ const updateTransactionPool = (unspentTxOuts) => {
     }
 };
 
-const getTxPoolIns = (aTransactionPool) => {
-    return _(aTransactionPool)
-        .map((tx) => tx.txIns)
-        .flatten()              // remove 1 outer array
-        .value();               // perform all library lodash function 
-};
-
 const isValidTxForPool = (tx, aTtransactionPool) => {
-    const txPoolIns = getTxPoolIns(aTtransactionPool);
-
-    const containsTxIn = (txIns, txIn) => {
-        return _.find(txPoolIns, ((txPoolIn) => {
-            return txIn.txOutIndex === txPoolIn.txOutIndex && txIn.txOutId === txPoolIn.txOutId;
-        }));
-    };
-
-    for (const txIn of tx.txIns) {
-        if (containsTxIn(txPoolIns, txIn)) {
+    for (const txPool of aTtransactionPool) {
+        if (txPool.id === tx.id) {
             console.log('txIn already found in the txPool');
             return false;
         }

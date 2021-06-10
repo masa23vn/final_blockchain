@@ -16,7 +16,7 @@ class Location {
         this.index;
         this.name;
         this.location;
-        this.address = [];
+        this.address;
     }
 }
 
@@ -56,7 +56,7 @@ const isValidLocationStructure = (location) => {
     } else if (typeof location.index !== 'number') {
         console.log('invalid index type in location');
         return false;
-    } else if (!(location.address instanceof Array)) {
+    } else if (typeof location.address !== 'string') {
         console.log('invalid address type in location');
         return false;
     } else {
@@ -74,12 +74,8 @@ const validateLocation = (location) => {
         return false;
     }
 
-    const validAddress = location.address
-        .map((adr) => isValidAddress(adr))
-        .reduce((a, b) => a && b, true);
-
-    if (!validAddress) {
-        console.log('Address is wrong in location: ' + location.id);
+    if (!isValidAddress(location.address)) {
+        console.log('invalid location address: ' + location.id);
         return false;
     }
 
@@ -144,13 +140,14 @@ const findLocation = (locationId) => {
     return locationPool.find((l) => locationId === l.id);
 };
 
-const createLocation = (name, location) => {
+const createLocation = (name, location, address) => {
     const pool = getLocationPool();
 
     let temp = new Location();
     temp.index = pool[pool.length - 1] ? pool[pool.length - 1].index + 1 : 1;
     temp.name = name;
     temp.location = location;
+    temp.address = address;
     temp.id = getLocationId(temp);
 
     return temp;
