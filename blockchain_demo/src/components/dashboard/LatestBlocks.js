@@ -121,7 +121,7 @@ const LatestBlocks = (props) => {
                   Date Added
               </TableCell>
                 <TableCell align="right">
-                  Supplies
+                  Transactions
               </TableCell>
               </TableRow>
             </TableHead>

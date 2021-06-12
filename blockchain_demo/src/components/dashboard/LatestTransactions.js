@@ -92,7 +92,7 @@ const WalletsTransactions = (props) => {
     <Card {...props}>
       <CardHeader title={
         <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography><b>Latest Supplies ({rows?.length})</b></Typography>
+          <Typography><b>Latest Transaction ({rows?.length})</b></Typography>
           <TextField style={{ minWidth: '300px' }}
             InputProps={{
               startAdornment: (
@@ -121,7 +121,7 @@ const WalletsTransactions = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell >
-                  <Typography >Supplies Id</Typography>
+                  <Typography >ID</Typography>
                 </TableCell>
                 <TableCell style={style2}>
                   Start

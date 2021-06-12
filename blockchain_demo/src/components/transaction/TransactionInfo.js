@@ -57,7 +57,7 @@ const TransactionInfo = (props) => {
   }
   return (
     <Card {...props}>
-      <CardHeader title={`Supply ${transaction?.id || "not found"}`} />
+      <CardHeader title={`Transaction ${transaction?.supplyID || "not found"}`} />
       <Divider />
       <PerfectScrollbar>
         <Box sx={{ minWidth: 800 }}>
@@ -66,8 +66,8 @@ const TransactionInfo = (props) => {
               {transaction &&
                 <>
                   <TableRow hover>
-                    <TableCell style={{ width: '250px' }}> Id: </TableCell>
-                    <TableCell> {transaction.id} </TableCell>
+                    <TableCell style={{ width: '250px' }}> Supply ID: </TableCell>
+                    <TableCell> {transaction.supplyID} </TableCell>
                   </TableRow>
                   <TableRow hover>
                     <TableCell style={{ width: '250px' }}> Start: </TableCell>
