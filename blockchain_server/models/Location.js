@@ -144,7 +144,7 @@ const createLocation = (name, location, address) => {
     const pool = getLocationPool();
 
     let temp = new Location();
-    temp.index = pool[pool.length - 1] ? pool[pool.length - 1].index + 1 : 1;
+    temp.index = pool[pool.length - 1] ? pool[pool.length - 1].index + 1 : 0;
     temp.name = name;
     temp.location = location;
     temp.address = address;

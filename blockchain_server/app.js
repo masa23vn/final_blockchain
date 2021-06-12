@@ -3,6 +3,7 @@ const cors = require("cors");
 require('console-stamp')(console, '[HH:MM:ss.l]');
 require('dotenv').config()
 const fs = require('fs');
+const { v4: uuidv4 } = require('uuid');
 const _ = require('lodash');
 const app = express();
 app.use(express.static("public"));
@@ -107,6 +108,14 @@ app.get('/block/:id', (req, res) => {
   }
 });
 
+app.get('/transaction', (req, res) => {
+  const tx = _(getBlockchain())
+    .map((blocks) => blocks.data)
+    .flatten()
+    .value();
+  res.send(tx);
+});
+
 app.get('/transaction/:id', (req, res) => {
   const tx = _(getBlockchain())
     .map((blocks) => blocks.data)
@@ -154,8 +163,8 @@ app.post('/sendTransaction', (req, res) => {
     const { locationId, itemID, name, description, price, amount } = req.body;
 
     const location = findLocation(locationId);
-    const supplyID = '';
-    const resp = sendTransaction(0, location, location, false, supplyID, itemID, name, description, price, amount);
+    const supplyID = uuidv4();
+    const resp = sendTransaction(0, location, location, false, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
 
     res.send(resp);
   } catch (e) {
@@ -188,15 +197,19 @@ app.post('/sendTransactionContinue', (req, res) => {
   }
 });
 
-// app.post('/sendTransactionGuess', (req, res) => {
-//   try {
-//     const resp = sendTransactionGuess(req.body.transaction);
-//     res.send(resp);
-//   } catch (e) {
-//     console.log(e.message);
-//     res.status(400).send(e.message);
-//   }
-// });
+app.post('/addLocation', (req, res) => {
+  try {
+    const { name, location, address } = req.body;
+
+    const temp = createLocation(name, location, address);
+    const resp = addToLocationPool(temp);
+
+    res.send(200);
+  } catch (e) {
+    console.log(e);
+    res.status(400).send(e.message);
+  }
+});
 
 app.post('/addPeer', (req, res) => {
   try {
