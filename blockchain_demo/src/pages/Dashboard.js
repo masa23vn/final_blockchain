@@ -9,12 +9,15 @@ import LatestBlocks from '../components/dashboard/LatestBlocks';
 import LatestTransactions from '../components/dashboard/LatestTransactions';
 import TotalBlock from '../components/dashboard/TotalBlock';
 import TotalTransaction from '../components/dashboard/TotalTransaction';
+import LatestSupplies from '../components/dashboard/LatestSupplies';
+
 import { LINK } from '../constant/constant'
 import axios from 'axios';
 
 const Dashboard = () => {
   const [blocks, setBlocks] = useState([]);
   const [txs, setTxs] = useState([]);
+  const [supplies, setSupplies] = useState([]);
 
   useEffect(async () => {
     await axios.get(`${LINK.API}/blocks`)
@@ -33,9 +36,17 @@ const Dashboard = () => {
         console.log(err);
       })
 
+    await axios.get(`${LINK.API}/supply`)
+      .then(function (res) {
+        setSupplies(res.data)
+      })
+      .catch(function (err) {
+        console.log(err);
+      })
+
 
   }, [])
-  
+
   return (
     <>
       <Helmet>
@@ -83,6 +94,13 @@ const Dashboard = () => {
             >
               <LatestTransactions data={txs} />
             </Grid>
+            <Grid
+              item
+              xs={12}
+            >
+              <LatestSupplies data={supplies} />
+            </Grid>
+
           </Grid>
         </Container>
       </Box>

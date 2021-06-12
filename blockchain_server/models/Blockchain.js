@@ -240,6 +240,28 @@ const findItemPool = (supplyID) => {
     return itemTx;
 };
 
+const getAllSupplies = () => {
+    const txs = _(getBlockchain())
+        .map((blocks) => blocks.data)
+        .flatten()
+        .value();
+
+    const uniqueSupply = [...new Set(txs.map(tx => tx.supplyID))]
+    const res = uniqueSupply.map(sp => {
+        const tx = txs.find(tx => tx.supplyID === sp)
+
+        const item = {
+            supplyID: tx.supplyID,
+            itemID: tx.itemID,
+            name: tx.name,
+            description: tx.description,
+            price: tx.price,
+        }
+
+        return item
+    })
+    return res;
+};
 
 module.exports = {
     Block,
@@ -259,4 +281,5 @@ module.exports = {
     findLatestItemPool,
     findItemBlock,
     findItemPool,
+    getAllSupplies,
 };
