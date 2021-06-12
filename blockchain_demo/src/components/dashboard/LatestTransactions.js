@@ -71,14 +71,13 @@ const WalletsTransactions = (props) => {
   const style1 = {
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",
-    maxWidth: "250px",
     overflow: "hidden"
   }
 
   const style2 = {
     whiteSpace: "nowrap",
     textOverflow: "ellipsis",
-    maxWidth: "400px",
+    width: "20%",
     overflow: "hidden"
   }
 
@@ -93,7 +92,7 @@ const WalletsTransactions = (props) => {
     <Card {...props}>
       <CardHeader title={
         <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography><b>Latest Transactions ({rows?.length})</b></Typography>
+          <Typography><b>Latest Supplies ({rows?.length})</b></Typography>
           <TextField style={{ minWidth: '300px' }}
             InputProps={{
               startAdornment: (
@@ -122,10 +121,16 @@ const WalletsTransactions = (props) => {
             <TableHead>
               <TableRow>
                 <TableCell >
-                  <Typography >Transaction Id</Typography>
+                  <Typography >Supplies Id</Typography>
                 </TableCell>
                 <TableCell style={style2}>
-                  Address
+                  Start
+              </TableCell>
+                <TableCell style={style2}>
+                  Destination
+              </TableCell>
+                <TableCell align="right" style={style3}>
+                  Number of Items
               </TableCell>
                 <TableCell align="right" style={style3}>
                   Status
@@ -136,24 +141,28 @@ const WalletsTransactions = (props) => {
               {(rows || []).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((tx, index) => {
                 return (
                   <TableRow hover key={tx.id}>
-                    <TableCell>
+                    <TableCell >
                       <div style={style1}>
                         <Link to={`/transaction/${tx.id}`}>{tx.id}</Link>
                       </div>
                     </TableCell>
                     <TableCell >
-                      <div style={style2}>
-                        From:&nbsp;
-                        {tx?.sender}</div>
-                      <div style={style2}>
-                        To:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        {tx?.receiver}
+                      <div>
+                        {tx?.fromLocation.name}
                       </div>
                     </TableCell>
-                    <TableCell align="right" style={style3}>
+                    <TableCell >
+                      <div >
+                        {tx?.toLocation.name}
+                      </div>
+                    </TableCell>
+                    <TableCell align="right">
+                      {tx?.amount}
+                    </TableCell>
+                    <TableCell align="right">
                       <Chip
-                        color="primary"
-                        label={"success"}
+                        color={tx?.isFinish ? "primary" : "secondary"}
+                        label={tx?.isFinish ? "Finish" : "Not Finish"}
                         size="small"
                       />
                     </TableCell>

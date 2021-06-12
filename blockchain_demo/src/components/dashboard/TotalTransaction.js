@@ -22,13 +22,13 @@ const TotalTransaction = (props) => (
             gutterBottom
             variant="h6"
           >
-            TOTAL Transaction
+            TOTAL Supplies
           </Typography>
           <Typography
             color="textPrimary"
             variant="h3"
           >
-            {props.amount ? props.amount + " Transactions" : ''}
+            {props.amount ? props.amount + " Supplies" : ''}
           </Typography>
         </Grid>
         <Grid item>

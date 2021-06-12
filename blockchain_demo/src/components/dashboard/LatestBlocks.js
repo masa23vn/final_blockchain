@@ -121,10 +121,7 @@ const LatestBlocks = (props) => {
                   Date Added
               </TableCell>
                 <TableCell align="right">
-                  Difficulty
-              </TableCell>
-                <TableCell align="right">
-                  Transactions
+                  Supplies
               </TableCell>
               </TableRow>
             </TableHead>
@@ -140,9 +137,6 @@ const LatestBlocks = (props) => {
                     </TableCell>
                     <TableCell >
                       {moment(block?.timestamp).format("DD/MM/yyyy hh:MM:ss")}
-                    </TableCell>
-                    <TableCell align="right">
-                      {block?.difficulty}
                     </TableCell>
                     <TableCell align="right">
                       {block?.data?.length ? block?.data?.length : 0}

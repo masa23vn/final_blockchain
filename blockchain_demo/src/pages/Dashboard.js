@@ -25,7 +25,7 @@ const Dashboard = () => {
         console.log(err);
       })
 
-    await axios.get(`${LINK.API}/finishPool`)
+    await axios.get(`${LINK.API}/transaction`)
       .then(function (res) {
         setTxs(res.data)
       })

@@ -60,10 +60,6 @@ const BlockInfo = (props) => {
                     </TableCell>
                   </TableRow>
                   <TableRow hover>
-                    <TableCell style={{ width: '250px' }}> Difficulty: </TableCell>
-                    <TableCell> {block?.difficulty} </TableCell>
-                  </TableRow>
-                  <TableRow hover>
                     <TableCell style={{ width: '250px' }}> Hash: </TableCell>
                     <TableCell> {block?.hash} </TableCell>
                   </TableRow>

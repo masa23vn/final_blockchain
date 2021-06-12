@@ -8,9 +8,7 @@ import {
   Button,
   Card,
   CardHeader,
-  TextField,
-  InputAdornment,
-  SvgIcon,
+  Chip,
   Divider,
   Table,
   TableBody,
@@ -59,7 +57,7 @@ const TransactionInfo = (props) => {
   }
   return (
     <Card {...props}>
-      <CardHeader title={`Transaction ${transaction?.id || "not found"}`} />
+      <CardHeader title={`Supply ${transaction?.id || "not found"}`} />
       <Divider />
       <PerfectScrollbar>
         <Box sx={{ minWidth: 800 }}>
@@ -72,32 +70,50 @@ const TransactionInfo = (props) => {
                     <TableCell> {transaction.id} </TableCell>
                   </TableRow>
                   <TableRow hover>
-                    <TableCell style={{ width: '250px' }}> Address: </TableCell>
+                    <TableCell style={{ width: '250px' }}> Start: </TableCell>
                     <TableCell>
-                      From:
-                      <div style={style}>
-                        {transaction?.sender}</div>
-                      To:
-                      <div style={style}>
-                        {transaction?.receiver}
-                      </div>
+                      {transaction?.fromLocation.name}
                     </TableCell>
                   </TableRow>
                   <TableRow hover>
-                    <TableCell style={{ width: '250px' }}> Amount: </TableCell>
-                    <TableCell> {transaction.amount} </TableCell>
+                    <TableCell style={{ width: '250px' }}> Destination: </TableCell>
+                    <TableCell>
+                      {transaction?.toLocation.name}
+                    </TableCell>
                   </TableRow>
                   <TableRow hover>
                     <TableCell style={{ width: '250px' }}> Status:</TableCell>
-                    <TableCell> Success </TableCell>
+                    <TableCell> <Chip
+                      color={transaction?.isFinish ? "primary" : "secondary"}
+                      label={transaction?.isFinish ? "Finish" : "Not Finish"}
+                      size="small"
+                    />
+                    </TableCell>
                   </TableRow>
+                  <TableRow hover>
+                    <TableCell style={{ width: '250px' }}> Number of Items: </TableCell>
+                    <TableCell> {transaction?.amount} </TableCell>
+                  </TableRow>
+                  <TableRow hover>
+                    <TableCell style={{ width: '250px' }}> Item's name: </TableCell>
+                    <TableCell> {transaction?.name} </TableCell>
+                  </TableRow>
+                  <TableRow hover>
+                    <TableCell style={{ width: '250px' }}> Item's Description: </TableCell>
+                    <TableCell> {transaction?.description} </TableCell>
+                  </TableRow>
+                  <TableRow hover>
+                    <TableCell style={{ width: '250px' }}> Item's price: </TableCell>
+                    <TableCell> {transaction?.price} </TableCell>
+                  </TableRow>
+
                 </>
               }
             </TableBody>
           </Table>
         </Box>
       </PerfectScrollbar>
-    </Card>
+    </Card >
   )
 };
 
