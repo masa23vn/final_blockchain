@@ -25,7 +25,7 @@ const { getTransactionPool, setPool } = require('./models/transactionPool');
 const { getPublicFromWallet, initWallet } = require('./models/wallet');
 const { generateNextBlock, getBlockchain, generatenextBlockWithTransaction, isValidBlockStructure, calculateHashForBlock,
   sendTransaction, replaceChain, sendTransactionGuess, generateNextBlockGuess, findLatestItemBlock, findLatestItemPool,
-  findItemBlock, findItemPool, getAllSupplies,
+  findItemBlock, findItemPool, getAllSupplies, findItemPoolByLocationID,
   Block
 } = require('./models/Blockchain');
 const { connectToPeers, getSockets, initP2PServer } = require('./socket/p2p');
@@ -152,6 +152,16 @@ app.get('/supply/:id', (req, res) => {
 app.get('/UnconfirmedSupply/:id', (req, res) => {
   try {
     const resp = findItemPool(req.params.id);
+    res.send(resp);
+  } catch (e) {
+    console.log(e.message);
+    res.status(400).send(e.message);
+  }
+});
+
+app.get('/UnconfirmedSupplyByLocation', (req, res) => {
+  try {
+    const resp = findItemPoolByLocationID();
     res.send(resp);
   } catch (e) {
     console.log(e.message);

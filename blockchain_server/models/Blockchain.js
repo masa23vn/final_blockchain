@@ -5,6 +5,7 @@ const { saveToFile } = require('./File')
 const { Transaction, processTransactions, validateTransaction, isValidAddress, getPublicKey } = require('./transaction');
 const { createTransaction, getPrivateFromWallet, getPublicFromWallet } = require('./wallet');
 const { addToTransactionPool, getTransactionPool, updateTransactionPool } = require('./transactionPool');
+const { findCurrentLocation } = require('./Location');
 
 class Block {
     constructor(index, hash, previousHash, timestamp, data) {
@@ -240,6 +241,19 @@ const findItemPool = (supplyID) => {
     return itemTx;
 };
 
+const findItemPoolByLocationID = () => {
+    const txs = getTransactionPool();
+    const location = findCurrentLocation(getPublicFromWallet());
+
+    let itemTx = [];
+    if (location) {
+        itemTx = txs.filter(tx => {
+            return tx.toLocation.id === location.id;
+        })
+    }
+    return itemTx;
+};
+
 const getAllSupplies = () => {
     const txs = _(getBlockchain())
         .map((blocks) => blocks.data)
@@ -282,4 +296,5 @@ module.exports = {
     findItemBlock,
     findItemPool,
     getAllSupplies,
+    findItemPoolByLocationID
 };

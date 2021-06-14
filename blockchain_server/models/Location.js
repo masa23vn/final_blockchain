@@ -140,6 +140,10 @@ const findLocation = (locationId) => {
     return locationPool.find((l) => locationId === l.id);
 };
 
+const findCurrentLocation = (address) => {
+    return locationPool.find((l) => address === l.address);
+};
+
 const createLocation = (name, location, address) => {
     const pool = getLocationPool();
 
@@ -157,6 +161,6 @@ const createLocation = (name, location, address) => {
 module.exports = {
     getLocationId, isValidAddress, validateLocation, 
     getLocationPool, setLocationPool, addToLocationPool, findLocation,
-    createLocation,
+    createLocation, findCurrentLocation,
     Location
 };
