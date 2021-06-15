@@ -1,4 +1,4 @@
-import DashboardLayout from './components/DashboardLayout';
+import DashboardLayout from './components/layout/DashboardLayout';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import Block from './pages/Block';

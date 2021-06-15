@@ -4,52 +4,50 @@ import {
   Box,
   Container,
   Snackbar,
-  Alert
+  Alert,
+  Grid
 } from '@material-ui/core';
-import WalletsTransfer from '../components/wallets/WalletsTransfer';
-import WalletsMiner from '../components/wallets/WalletsMiner';
-import WalletsCreate from '../components/wallets/WalletsCreate';
-import WalletsLogin from '../components/wallets/WalletsLogin';
-import WalletsTransactions from '../components/wallets/WalletsTransactions';
 import { LINK } from '../constant/constant'
-import axios from 'axios';
-import { decryptPrivateKey, getPublicKey } from '../helper/sign';
+import { axiosGet } from '../utils/connectAxios'
+import WalletsList from '../components/wallets/WalletsList';
+import WalletsLogin from '../components/wallets/WalletsLogin';
+import WalletsDetail from '../components/wallets/WalletsDetail';
+
+import { set } from 'lodash';
 
 
 
 const WalletsView = () => {
+  const [login, setLogin] = useState(false);
   const [values, setValues] = useState({
-    encryphted: '',
+    url: "http://localhost:9000",
     password: '',
   });
+  const [data, setData] = useState([]);
+  const [selected, setSelected] = useState();
 
   const [walletTx, setWalletTx] = useState();
 
-  const handleGetTransaction = async () => {
+  const handleGetPublicKey = async () => {
     try {
-      const privateKey = decryptPrivateKey(values.encryphted, values.password)
-      const publicKey = getPublicKey(privateKey)
-      await axios.post(`${LINK.API}/finishPoolGuess`, { address: publicKey })
-        .then(function (res) {
-          setWalletTx(res.data)
-        })
-        .catch(function (err) {
-          if (err?.response) {
-            handleOpen(err?.response?.data, "error");
-
-          }
-          else {
-            handleOpen(err.message, "error");
-
-          }
-        })
+      const res = await axiosGet(values.url, 'address')
+      handleOpen(res?.address, "success");
     }
     catch (error) {
       handleOpen(error.message, 'error')
     }
-
-
   }
+
+  const handleGetSupplies = async () => {
+    try {
+      const res = await axiosGet(values.url, 'UnconfirmedSupplyByLocation')
+      setData(res);
+    }
+    catch (error) {
+      handleOpen(error.message, 'error')
+    }
+  }
+
 
   // snack bar
   const [open, setOpen] = useState(false);
@@ -63,6 +61,8 @@ const WalletsView = () => {
   const handleClose = () => {
     setOpen(false);
   };
+
+  console.log(selected)
   return (
     <>
       <Snackbar
@@ -88,25 +88,37 @@ const WalletsView = () => {
         }}
       >
         <Container maxWidth="lg">
-          <h3 style={{ marginLeft: 15 }}>Don't have a wallet ?</h3>
-          <Box sx={{ pt: 3 }}>
-            <WalletsCreate handleOpen={handleOpen} />
+          <h3 style={{ marginTop: '20px', marginLeft: '15px' }}>Connect to your server</h3>
+          <Box style={{ paddingTop: '10px' }}>
+            <WalletsLogin values={values} setValues={setValues} handleGetPublicKey={handleGetPublicKey} handleGetSupplies={handleGetSupplies} />
           </Box>
-          <h3 style={{ marginTop: 20, marginLeft: 15 }}>Using your wallet</h3>
-          <Box sx={{ pt: 3 }}>
-            <WalletsLogin encryphted={values.encryphted} password={values.password}
-              setValues={setValues} handleGetTransaction={handleGetTransaction} handleOpen={handleOpen} />
-          </Box>
-          <Box sx={{ pt: 3 }}>
-            <WalletsTransactions data={walletTx} handleOpen={handleOpen} />
-          </Box>
-          <Box sx={{ pt: 3 }}>
-            <WalletsTransfer encryphted={values.encryphted} password={values.password} handleOpen={handleOpen} />
-          </Box>
-          <Box sx={{ pt: 3 }}>
-            <WalletsMiner encryphted={values.encryphted} password={values.password} handleOpen={handleOpen} />
+          <Box style={{ paddingTop: '10px' }}>
           </Box>
 
+          <Grid
+            container
+            spacing={3}
+            style={{ marginTop: '20px', marginBottom: '80px' }}
+          >
+            <Grid style={{ pt: 3, minHeight: '700px', maxHeight: '700px' }}
+              item
+              lg={4}
+              sm={4}
+              xl={4}
+              xs={12}
+            >
+              <WalletsList data={data} setSelected={setSelected} />
+            </Grid>
+            <Grid style={{ pt: 3, minHeight: '700px', maxHeight: '700px' }}
+              item
+              lg={8}
+              sm={8}
+              xl={8}
+              xs={12}
+            >
+              <WalletsDetail selected={selected} />
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     </>

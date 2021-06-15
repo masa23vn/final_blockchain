@@ -15,23 +15,23 @@ import { LINK } from '../../constant/constant'
 import axios from 'axios';
 
 const WalletsLogin = (props) => {
-  const { encryphted, password, setValues, handleGetTransaction, handleOpen } = props
+  const { values, setValues, handleGetPublicKey, handleGetSupplies } = props
   const [errors, setErrors] = useState({
-    encryphted: '',
+    url: '',
     password: ''
   })
 
-  const handleChangeEncryphted = (event) => {
+  const handleChangeUrl = (event) => {
     if (event.target.value.trim() !== '') {
       setErrors({
         ...errors,
-        encryphted: ''
+        url: ''
       });
     }
 
     setValues({
-      encryphted: event.target.value.trim(),
-      password: password
+      ...values,
+      url: event.target.value.trim(),
     });
   };
 
@@ -44,91 +44,10 @@ const WalletsLogin = (props) => {
     }
 
     setValues({
-      encryphted: encryphted,
+      ...values,
       password: event.target.value.trim()
     });
   };
-
-  const handleGetPublicKey = () => {
-    if (encryphted === '') {
-      setErrors({
-        ...errors,
-        encryphted: "This field can't be blank."
-      })
-      return
-    }
-    if (password === '') {
-      setErrors({
-        ...errors,
-        password: "This field can't be blank."
-      })
-      return
-    }
-    try {
-      const privateKey = decryptPrivateKey(encryphted, password)
-      const publicKey = getPublicKey(privateKey)
-      handleOpen("Your public key: " + publicKey, 'success')
-    }
-    catch (error) {
-      handleOpen(error.message, 'error')
-    }
-  }
-
-  const handleGetBalance = async () => {
-    if (encryphted === '') {
-      setErrors({
-        ...errors,
-        encryphted: "This field can't be blank."
-      })
-      return
-    }
-    if (password === '') {
-      setErrors({
-        ...errors,
-        password: "This field can't be blank."
-      })
-      return
-    }
-    try {
-      const privateKey = decryptPrivateKey(encryphted, password);
-      const publicKey = getPublicKey(privateKey)
-      axios.post(`${LINK.API}/balanceGuess`, { address: publicKey })
-        .then(function (res) {
-          handleOpen("Your balance: " + res?.data?.balance, "success");
-        })
-        .catch(function (err) {
-          if (err?.response) {
-            handleOpen(err?.response?.data, "error");
-
-          }
-          else {
-            handleOpen(err.message, "error");
-
-          }
-        })
-    } catch (error) {
-      handleOpen(error.message, 'error')
-    }
-  }
-
-  const handleTransaction = () => {
-    if (encryphted === '') {
-      setErrors({
-        ...errors,
-        encryphted: "This field can't be blank."
-      })
-      return
-    }
-    if (password === '') {
-      setErrors({
-        ...errors,
-        password: "This field can't be blank."
-      })
-      return
-    }
-
-    handleGetTransaction();
-  }
 
   return (
     <>
@@ -136,20 +55,20 @@ const WalletsLogin = (props) => {
         <Card>
           <CardHeader
             title="Login"
-            subheader="Your info will only be kept at client's side and will be deleted when you close this tab "
+            subheader="Connect to your server's blockchain "
           />
           <Divider />
           <CardContent>
             <TextField
               fullWidth
-              label="Encrypted Key"
+              label="Your server's URL"
               margin="normal"
-              name="encryphted"
-              onChange={handleChangeEncryphted}
-              value={encryphted}
+              name="url"
+              onChange={handleChangeUrl}
+              value={values?.url}
               variant="outlined"
-              error={errors.encryphted !== ''}
-              helperText={errors.encryphted}
+              error={errors.url !== ''}
+              helperText={errors.url}
             />
             <TextField
               fullWidth
@@ -158,7 +77,7 @@ const WalletsLogin = (props) => {
               margin="normal"
               name="password"
               onChange={handleChangePassword}
-              value={password}
+              value={values?.password}
               variant="outlined"
               error={errors.password !== ''}
               helperText={errors.password}
@@ -173,27 +92,20 @@ const WalletsLogin = (props) => {
             }}
           >
             <Button
+              style={{ marginLeft: '10px' }}
               color="primary"
               variant="contained"
-              onClick={() => handleGetPublicKey()}
+              onClick={i => handleGetPublicKey()}
             >
-              Get Public Key
+              Get public key
           </Button>
             <Button
               style={{ marginLeft: '10px' }}
               color="primary"
               variant="contained"
-              onClick={() => handleGetBalance()}
+              onClick={i => handleGetSupplies()}
             >
-              Get Balance
-          </Button>
-            <Button
-              style={{ marginLeft: '10px' }}
-              color="primary"
-              variant="contained"
-              onClick={() => handleTransaction()}
-            >
-              Get Transaction
+              Get your unconfirmed supplies
           </Button>
           </Box>
         </Card>

@@ -91,7 +91,7 @@ const SupplyInfo = (props) => {
                     </TableCell>
                   </TableRow>
                   <TableRow hover>
-                    <TableCell style={{ width: '250px' }}> Price:</TableCell>
+                    <TableCell style={{ width: '250px' }}> Status:</TableCell>
                     <TableCell>
                       <Chip
                         color={supplyList[supplyList.length - 1]?.isFinish ? "primary" : "secondary"}
