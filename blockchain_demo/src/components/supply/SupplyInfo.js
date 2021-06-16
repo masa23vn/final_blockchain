@@ -46,7 +46,7 @@ const SupplyInfo = (props) => {
     await axios.get(`${LINK.API}/supply/${ID}`)
       .then(function (res) {
         setSupply(res?.data[0])
-        setList(res.data)
+        setList(res.data.reverse())
       })
       .catch(function (err) {
         console.log(err);
@@ -94,8 +94,8 @@ const SupplyInfo = (props) => {
                     <TableCell style={{ width: '250px' }}> Status:</TableCell>
                     <TableCell>
                       <Chip
-                        color={supplyList[supplyList.length - 1]?.isFinish ? "primary" : "secondary"}
-                        label={supplyList[supplyList.length - 1]?.isFinish ? "Finish" : "Not Finish"}
+                        color={supplyList[0]?.isFinish ? "primary" : "secondary"}
+                        label={supplyList[0]?.isFinish ? "Finish" : "Not Finish"}
                         size="small"
                       />
                     </TableCell>
@@ -105,7 +105,7 @@ const SupplyInfo = (props) => {
                     <TableCell>
                       {(supplyList || []).map((i, n) =>
                         <div key={n}>
-                          <div>{`No.${n + 1}`}</div>
+                          <div>{`No.${supplyList.length - n}`}</div>
                           <div style={{ marginLeft: '40px' }}>
                             <div>{`From: ${i?.fromLocation?.name}`}</div>
                             <div>{`To: ${i?.toLocation?.name}`}</div>

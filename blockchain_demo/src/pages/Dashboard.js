@@ -20,6 +20,8 @@ const Dashboard = () => {
   const [supplies, setSupplies] = useState([]);
 
   useEffect(async () => {
+    window.scrollTo(0, 0)
+
     await axios.get(`${LINK.API}/blocks`)
       .then(function (res) {
         setBlocks(res.data)
@@ -43,7 +45,6 @@ const Dashboard = () => {
       .catch(function (err) {
         console.log(err);
       })
-
 
   }, [])
 

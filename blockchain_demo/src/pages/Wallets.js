@@ -26,7 +26,9 @@ const WalletsView = () => {
   const [data, setData] = useState([]);
   const [selected, setSelected] = useState();
 
-  const [walletTx, setWalletTx] = useState();
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   const handleGetPublicKey = async () => {
     try {
@@ -34,17 +36,17 @@ const WalletsView = () => {
       handleOpen(res?.address, "success");
     }
     catch (error) {
-      handleOpen(error.message, 'error')
+      handleOpen(error?.response?.data || error?.message, 'error')
     }
   }
 
   const handleGetSupplies = async () => {
     try {
-      const res = await axiosGet(values.url, 'UnconfirmedSupplyByLocation')
+      const res = await axiosGet(values.url, 'supplyByLocation')
       setData(res);
     }
     catch (error) {
-      handleOpen(error.message, 'error')
+      handleOpen(error?.response?.data || error?.message, 'error')
     }
   }
 
@@ -87,7 +89,7 @@ const WalletsView = () => {
           py: 3
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth={false}>
           <h3 style={{ marginTop: '20px', marginLeft: '15px' }}>Connect to your server</h3>
           <Box style={{ paddingTop: '10px' }}>
             <WalletsLogin values={values} setValues={setValues} handleGetPublicKey={handleGetPublicKey} handleGetSupplies={handleGetSupplies} />
@@ -116,7 +118,7 @@ const WalletsView = () => {
               xl={8}
               xs={12}
             >
-              <WalletsDetail selected={selected} />
+              <WalletsDetail values={values} selected={selected} handleOpen={handleOpen} />
             </Grid>
           </Grid>
         </Container>

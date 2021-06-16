@@ -23,9 +23,9 @@ const { getLocationId, isValidAddress, validateLocation, createLocation,
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 
 const { getPublicFromWallet, initWallet } = require('./models/wallet');
-const { generateNextBlock, getBlockchain, generatenextBlockWithTransaction, isValidBlockStructure, calculateHashForBlock,
+const { generateNextBlock, getBlockchain, generatenextBlockWithSupply, isValidBlockStructure, calculateHashForBlock,
   sendTransaction, replaceChain, sendTransactionGuess, generateNextBlockGuess, findLatestItemBlock, findLatestItemPool,
-  findItemBlock, findItemPool, getAllSupplies, findItemPoolByLocationID,
+  findItemBlock, findItemPool, getAllSupplies, getAllSuppliesByLocation,
   Block
 } = require('./models/Blockchain');
 const { connectToPeers, getSockets, initP2PServer } = require('./socket/p2p');
@@ -149,20 +149,10 @@ app.get('/supply/:id', (req, res) => {
   }
 });
 
-app.get('/UnconfirmedSupply/:id', (req, res) => {
+app.get('/supplyByLocation', (req, res) => {
   try {
-    const resp = findItemPool(req.params.id);
-    res.send(resp);
-  } catch (e) {
-    console.log(e.message);
-    res.status(400).send(e.message);
-  }
-});
-
-app.get('/UnconfirmedSupplyByLocation', (req, res) => {
-  try {
-    const resp = findItemPoolByLocationID();
-    res.send(resp);
+    const supplies = getAllSuppliesByLocation()
+    res.send(supplies);
   } catch (e) {
     console.log(e.message);
     res.status(400).send(e.message);
@@ -173,23 +163,31 @@ app.get('/peers', (req, res) => {
   res.send(getSockets().map((s) => s._socket.remoteAddress + ':' + s._socket.remotePort));
 });
 
-app.post('/mineBlock', (req, res) => {                 //  all transaction pool
-  const newBlock = generateNextBlock();
-  if (newBlock === null) {
-    res.status(400).send('could not generate block');
-  } else {
-    res.send(newBlock);
+app.post('/mineBlockWithSupply', (req, res) => {                 //  all transaction pool
+  try {
+    const { supplyID } = req.body;
+    const newBlock = generatenextBlockWithSupply(supplyID);
+    if (newBlock === null) {
+      res.status(400).send('could not generate block');
+    } else {
+      res.send(newBlock);
+    }
+  } catch (e) {
+    res.status(400).send(e.message);
   }
+
 });
 
 // TODO
 app.post('/sendTransaction', (req, res) => {
   try {
-    const { locationId, itemID, name, description, price, amount } = req.body;
+    const { locationId, isFinish, itemID, name, description, price, amount } = req.body;
 
     const location = findLocation(locationId);
     const supplyID = uuidv4();
-    const resp = sendTransaction(0, location, location, false, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
+    const finish = parseInt(isFinish) ? true : false;
+
+    const resp = sendTransaction(0, location, location, finish, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
 
     res.send(resp);
   } catch (e) {
@@ -209,10 +207,14 @@ app.post('/sendTransactionContinue', (req, res) => {
       return res.status(400).send("Found unconfirmed transacions of this item");
     }
     if (!lastTx) {
-      return res.status(400).send("Item not found. Please create new.");
+      return res.status(400).send("Supply not found. Please create new.");
     }
+    if (!toLocation) {
+      return res.status(400).send("Location not found. Please try again.");
+    }
+    const finish = parseInt(isFinish) ? true : false
 
-    const resp = sendTransaction(lastTx.index + 1, lastTx.toLocation, toLocation, isFinish, lastTx.supplyID,
+    const resp = sendTransaction(lastTx.index + 1, lastTx.toLocation, toLocation, finish, lastTx.supplyID,
       lastTx.itemID, lastTx.name, lastTx.description, lastTx.price, parseInt(amount));
 
     res.send(resp);

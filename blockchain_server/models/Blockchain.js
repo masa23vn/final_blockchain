@@ -56,12 +56,12 @@ const generateNextBlockGuess = () => {
     return generateRawNextBlock(blockData);
 };
 
-const generatenextBlockWithTransaction = (index, from, to, isFinish, supplyID, itemID, name, description, price, amount) => {
-    const tx = createTransaction(index, getPrivateFromWallet(), from, to, isFinish, supplyID, itemID, name, description, price, amount);
-    if (!validateTransaction(tx)) {
-        throw Error('Invalid tx');
+const generatenextBlockWithSupply = (supplyID) => {
+    const pools = getTransactionPool();
+    const blockData = pools.filter(i => i.supplyID === supplyID);
+    if (blockData.length === 0) {
+        throw Error("Supply not found");
     }
-    const blockData = tx;
     return generateRawNextBlock(blockData);
 };
 
@@ -241,19 +241,6 @@ const findItemPool = (supplyID) => {
     return itemTx;
 };
 
-const findItemPoolByLocationID = () => {
-    const txs = getTransactionPool();
-    const location = findCurrentLocation(getPublicFromWallet());
-
-    let itemTx = [];
-    if (location) {
-        itemTx = txs.filter(tx => {
-            return tx.toLocation.id === location.id;
-        })
-    }
-    return itemTx;
-};
-
 const getAllSupplies = () => {
     const txs = _(getBlockchain())
         .map((blocks) => blocks.data)
@@ -277,13 +264,37 @@ const getAllSupplies = () => {
     return res;
 };
 
+const getAllSuppliesByLocation = () => {
+    const location = findCurrentLocation(getPublicFromWallet());
+    const txs = _(getBlockchain())
+        .map((blocks) => blocks.data)
+        .flatten()
+        .value();
+
+    const uniqueSupply = [...new Set(txs.map(tx => tx.supplyID))]
+    const list = uniqueSupply.map(sp => {
+        let tx = txs.filter(tx => tx.supplyID === sp);
+        const unconfirm = findItemPool(tx[0].supplyID);
+        if (unconfirm.length > 0) {
+            tx = tx.concat(unconfirm)
+        }
+        return { data: tx, hasUnConfirm: unconfirm.length > 0 };
+    })
+    const res = list.filter(i => {
+        const supply = i.data;
+        const isLocation = supply[supply.length - 1].toLocation.id === location.id;
+        const isFinish = supply[supply.length - 1].isFinish === true || supply[supply.length - 1].isFinish === 'true';
+        return isLocation && (!isFinish || i.hasUnConfirm);
+    })
+    return res;
+};
+
 module.exports = {
     Block,
     getBlockchain,
     getLatestBlock,
     generateRawNextBlock,
     generateNextBlock,
-    generatenextBlockWithTransaction,
     isValidBlockStructure, calculateHashForBlock,
     replaceChain,
     addBlock,
@@ -296,5 +307,6 @@ module.exports = {
     findItemBlock,
     findItemPool,
     getAllSupplies,
-    findItemPoolByLocationID
+    getAllSuppliesByLocation,
+    generatenextBlockWithSupply
 };

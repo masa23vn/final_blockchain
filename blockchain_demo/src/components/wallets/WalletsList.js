@@ -35,7 +35,7 @@ const WalletsList = (props) => {
   }, [data]);
 
   return (
-    <Card {...props} style={{ height: '100%' }}>
+    <Card style={{ height: '100%' }}>
       <CardHeader title={
         <Box style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Typography><b>Latest Supply ({supplies?.length})</b></Typography>
@@ -43,14 +43,14 @@ const WalletsList = (props) => {
       } />
       <Divider />
       <Box style={{ width: '100%', height: '100%' }}>
-        {(supplies || []).map(i => {
+        {(supplies || []).map((i, n) => {
           return (
-            <>
+            <div key={n} >
               <div style={{ minHeight: '50px', padding: '12px 20px 10px 20px' }} onClick={e => setSelected(i)}>
-                {i.id}
+                {i.data[0]?.supplyID}
               </div>
               <Divider />
-            </>
+            </div>
           );
         })}
       </Box>

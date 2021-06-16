@@ -22,14 +22,16 @@ const DashboardLayoutWrapper = experimentalStyled('div')(
     paddingTop: 64,
     [theme.breakpoints.up('lg')]: {
       paddingLeft: 256
-    }
+    },
+    height: '100%',
   })
 );
 
 const DashboardLayoutContainer = experimentalStyled('div')({
   display: 'flex',
   flex: '1 1 auto',
-  overflow: 'hidden'
+  overflow: 'hidden',
+  height: '100%',
 });
 
 const DashboardLayoutContent = experimentalStyled('div')({

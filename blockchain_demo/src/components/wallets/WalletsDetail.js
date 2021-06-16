@@ -1,54 +1,64 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom'
-import moment from 'moment';
-import { v4 as uuid } from 'uuid';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import {
   Box,
-  Container,
   Card,
   CardHeader,
-  TextField,
-  InputAdornment,
-  SvgIcon,
   Divider,
   Chip,
   Table,
   TableBody,
   TableCell,
-  TableHead,
+  Button,
   TableRow,
-  TablePagination,
   Typography,
 } from '@material-ui/core';
 import { LINK } from '../../constant/constant'
 import axios from 'axios';
+import ConfirmSupply from './ConfirmSupply'
+import ContinueSupply from './ContinueSupply'
 
 const WalletsDetail = (props) => {
   const [supply, setSupply] = useState();
   const [supplyList, setList] = useState([]);
-  const { selected } = props;
+  const [unconfirm, setUnconfirm] = useState(false);
+  const { selected, values, handleOpen } = props;
 
   useEffect(async () => {
     if (selected) {
-      await axios.get(`${LINK.API}/supply/${selected.id}`)
-        .then(function (res) {
-          const temp = res?.data.concat(selected);
-          setSupply(temp[0])
-          setList(temp)
-        })
-        .catch(function (err) {
-          console.log(err);
-        })
+      const temp = selected.data.slice().reverse();
+      setSupply(temp[0]);
+      setList(temp);
+      setUnconfirm(selected.hasUnConfirm)
     }
 
   }, [selected])
 
+  const [isOpen, setIsOpen] = useState('');
+  const handleConfirm = () => {
+    if (unconfirm) {
+      setIsOpen("CONFIRM_STEP1")
+    }
+    else {
+      setIsOpen("CONFIRM_STEP2")
+    }
+  }
+
   return (
-    <Card {...props} style={{ height: '100%' }}>
+    <Card style={{ height: '100%' }}>
       <CardHeader title={
-        <Box style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Typography><b>Selected Supply {supply?.supplyID}</b></Typography>
+        <Box style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {supply ?
+            <>
+              <Typography><b>Supply {supply?.supplyID}</b></Typography>
+              <Button variant="contained" style={{ backgroundColor: '#1DAF1A' }} onClick={i => handleConfirm()}>
+                {unconfirm ? "Confirm" : "Continue Supply"}
+              </Button>
+              <ConfirmSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
+              <ContinueSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
+            </>
+            : <Typography><b>Supply's Info</b></Typography>
+          }
         </Box>
       } />
       <Divider />
@@ -85,8 +95,8 @@ const WalletsDetail = (props) => {
                       <TableCell style={{ width: '250px' }}> Status:</TableCell>
                       <TableCell>
                         <Chip
-                          color={supplyList[supplyList.length - 1]?.isFinish ? "primary" : "secondary"}
-                          label={supplyList[supplyList.length - 1]?.isFinish ? "Finish" : "Not Finish"}
+                          color={supplyList[0]?.isFinish ? "primary" : "secondary"}
+                          label={supplyList[0]?.isFinish ? "Finish" : "Not Finish"}
                           size="small"
                         />
                       </TableCell>
@@ -96,7 +106,10 @@ const WalletsDetail = (props) => {
                       <TableCell>
                         {(supplyList || []).map((i, n) =>
                           <div key={n}>
-                            <div>{`No.${n + 1}`}</div>
+                            <div>
+                              {`No.${supplyList.length - n}  `}
+                              <span style={{ color: 'red' }}>{n === 0 && unconfirm ? "(Unconfirmed)" : ""}</span>
+                            </div>
                             <div style={{ marginLeft: '40px' }}>
                               <div>{`From: ${i?.fromLocation?.name}`}</div>
                               <div>{`To: ${i?.toLocation?.name}`}</div>

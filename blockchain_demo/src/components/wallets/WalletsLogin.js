@@ -105,7 +105,7 @@ const WalletsLogin = (props) => {
               variant="contained"
               onClick={i => handleGetSupplies()}
             >
-              Get your unconfirmed supplies
+              Get your supplies
           </Button>
           </Box>
         </Card>
