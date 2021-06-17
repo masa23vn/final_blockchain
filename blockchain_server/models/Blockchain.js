@@ -3,22 +3,23 @@ const _ = require('lodash');
 const hexToBinary = require('hex-to-binary');
 const { saveToFile } = require('./File')
 const { Transaction, processTransactions, validateTransaction, isValidAddress, getPublicKey } = require('./transaction');
-const { createTransaction, getPrivateFromWallet, getPublicFromWallet } = require('./wallet');
+const { createTransaction, getPrivateFromWallet, getPublicFromWallet, generatePrivateKey, generatePublicKey } = require('./wallet');
 const { addToTransactionPool, getTransactionPool, updateTransactionPool } = require('./transactionPool');
-const { findCurrentLocation } = require('./Location');
+const { createLocation, findCurrentLocation, validateLocationPool } = require('./Location');
 
 class Block {
-    constructor(index, hash, previousHash, timestamp, data) {
+    constructor(index, hash, previousHash, timestamp, data, location) {
         this.index = index;
         this.previousHash = previousHash;
         this.timestamp = timestamp;
         this.data = data;
+        this.location = location;
         this.hash = hash;
     }
 }
 
 const genesisBlock = new Block(
-    0, '5efade649896b73d85423254a8a645dd81a97304b15c9e791ec5ef2c4b6b2f60', '', 1465154705, []
+    0, '5efade649896b73d85423254a8a645dd81a97304b15c9e791ec5ef2c4b6b2f60', '', 1465154705, [], []
 );
 
 let blockchain = [genesisBlock];
@@ -28,14 +29,17 @@ const getBlockchain = () => blockchain;
 
 const getLatestBlock = () => blockchain[blockchain.length - 1];
 
+const getLatestLocation = () => getLatestBlock().location;
+
 const getCurrentTimestamp = () => new Date().getTime();
 
+// create block function
 const generateRawNextBlock = (blockData) => {
     const previousBlock = getLatestBlock();
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = getCurrentTimestamp();
 
-    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData);
+    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData, previousBlock.location);
     if (addBlock(newBlock)) {
         const { broadcastLatest } = require('../socket/p2p')
         broadcastLatest();
@@ -46,14 +50,32 @@ const generateRawNextBlock = (blockData) => {
     }
 };
 
-const generateNextBlock = () => {
-    const blockData = getTransactionPool();
-    return generateRawNextBlock(blockData);
+const generateRawNextBlockLocation = (location) => {
+    const previousBlock = getLatestBlock();
+    const nextIndex = previousBlock.index + 1;
+    const nextTimestamp = getCurrentTimestamp();
+    let newLocationList = previousBlock.location.concat(location);
+
+    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, [], newLocationList);
+    if (addBlock(newBlock)) {
+        const { broadcastLatest } = require('../socket/p2p')
+        broadcastLatest();
+        saveToFile(blockchain, 'keys/chain.json')
+        return newBlock;
+    } else {
+        return null;
+    }
 };
 
-const generateNextBlockGuess = () => {
-    const blockData = getTransactionPool();
-    return generateRawNextBlock(blockData);
+const generateNextBlockWithLocation = (name, location) => {
+    const list = getLatestLocation();
+    const index = list.length > 0 ? list[list.length - 1].index + 1 : 0;
+    const privateKey = generatePrivateKey();
+    const address = generatePublicKey(privateKey)
+    const newLocation = createLocation(index, name, location, address);
+
+    const newBlock = generateRawNextBlockLocation(newLocation);
+    return { newBlock, privateKey }
 };
 
 const generatenextBlockWithSupply = (supplyID) => {
@@ -81,22 +103,28 @@ const sendTransactionGuess = (tx) => {
 };
 
 const calculateHashForBlock = (block) =>
-    calculateHash(block.index, block.previousHash, block.timestamp, block.data);
+    calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.location);
 
-const calculateHash = (index, previousHash, timestamp, data) =>
-    CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
+const calculateHash = (index, previousHash, timestamp, data, location) =>
+    CryptoJS.SHA256(index + previousHash + timestamp + data + location).toString();
 
 const addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
         const retVal = processTransactions(newBlock.data);
+        const checkLocation = validateLocationPool(newBlock.location)
         if (!retVal) {
             console.log('block is not valid in terms of transactions');
             return false;
-        } else {
-            blockchain.push(newBlock);
-            updateTransactionPool(blockchain);
-            return true;
         }
+        if (!checkLocation) {
+            console.log('block is not valid in terms of location');
+            return false;
+        }
+
+        blockchain.push(newBlock);
+        updateTransactionPool(blockchain);
+        return true;
+
     }
 };
 
@@ -162,9 +190,14 @@ const isValidChain = (blockchainToValidate) => {
         }
 
         const currentBlock = blockchainToValidate[i];
-        isValid = processTransactions(currentBlock.data);
+        const isValid = processTransactions(currentBlock.data);
+        const checkLocation = validateLocationPool(currentBlock.location)
         if (!isValid) {
             console.log('invalid transactions when replace blockchain');
+            return false;
+        }
+        if (!checkLocation) {
+            console.log('invalid location when replace blockchain');
             return false;
         }
     }
@@ -189,9 +222,9 @@ const replaceChain = (newBlocks) => {
     }
 };
 
-const mineBlock = (index, previousHash, timestamp, data, difficulty) => {
-    const hash = calculateHash(index, previousHash, timestamp, data);
-    return new Block(index, hash, previousHash, timestamp, data);
+const mineBlock = (index, previousHash, timestamp, data, location) => {
+    const hash = calculateHash(index, previousHash, timestamp, data, location);
+    return new Block(index, hash, previousHash, timestamp, data, location);
 };
 
 const handleReceivedTransaction = (transaction) => {
@@ -265,11 +298,14 @@ const getAllSupplies = () => {
 };
 
 const getAllSuppliesByLocation = () => {
-    const location = findCurrentLocation(getPublicFromWallet());
+    const location = findCurrentLocation(getLatestLocation(), getPublicFromWallet());
     const txs = _(getBlockchain())
         .map((blocks) => blocks.data)
         .flatten()
         .value();
+    if (!location) {
+        throw Error("Can't not find your location")
+    }
 
     const uniqueSupply = [...new Set(txs.map(tx => tx.supplyID))]
     const list = uniqueSupply.map(sp => {
@@ -293,20 +329,20 @@ module.exports = {
     Block,
     getBlockchain,
     getLatestBlock,
+    getLatestLocation,
     generateRawNextBlock,
-    generateNextBlock,
     isValidBlockStructure, calculateHashForBlock,
     replaceChain,
     addBlock,
     sendTransaction,
     handleReceivedTransaction,
     sendTransactionGuess,
-    generateNextBlockGuess,
     findLatestItemBlock,
     findLatestItemPool,
     findItemBlock,
     findItemPool,
     getAllSupplies,
     getAllSuppliesByLocation,
-    generatenextBlockWithSupply
+    generatenextBlockWithSupply,
+    generateNextBlockWithLocation,
 };

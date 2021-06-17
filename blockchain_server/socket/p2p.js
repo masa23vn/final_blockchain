@@ -3,7 +3,6 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 const { Server } = require('ws');
 const { addBlock, Block, getBlockchain, getLatestBlock, replaceChain, isValidBlockStructure, handleReceivedTransaction } = require('../models/Blockchain');
 const { getTransactionPool } = require('../models/transactionPool');
-const { getLocationPool, addToLocationPool } = require('../models/location');
 
 const sockets = [];
 
@@ -13,8 +12,6 @@ const MessageType = {
     RESPONSE_BLOCKCHAIN: 2,
     QUERY_TRANSACTION_POOL: 3,
     RESPONSE_TRANSACTION_POOL: 4,
-    QUERY_LOCATION_POOL: 5,
-    RESPONSE_LOCATION_POOL: 6,
 }
 
 const initP2PServer = (p2pPort) => {
@@ -34,7 +31,6 @@ const initConnection = (ws) => {
     write(ws, queryChainLengthMsg());
     // wait until connected
     setTimeout(() => {
-        broadcast(queryLocationPoolMsg());
         broadcast(queryTransactionPoolMsg());
     }, 500);
 };
@@ -93,27 +89,6 @@ const initMessageHandler = (ws) => {
                         }
                     });
                     break;
-                case MessageType.QUERY_LOCATION_POOL:
-                    write(ws, responseLocationPoolMsg());
-                    break;
-                case MessageType.RESPONSE_LOCATION_POOL:
-                    const receivedLocations = JSONToObject(message.data);
-                    if (receivedLocations === null) {
-                        console.log('invalid location received: %s', JSON.stringify(message.data));
-                        break;
-                    }
-                    receivedLocations.forEach((location) => {
-                        try {
-                            addToLocationPool(location);
-                            // if no error is thrown, location was indeed added to the pool
-                            // let's broadcast location pool
-                            broadCastLocationPool();
-                        } catch (e) {
-                            console.log(e.message);
-                        }
-                    });
-                    break;
-
             }
         } catch (e) {
             console.log(e);
@@ -144,15 +119,6 @@ const queryTransactionPoolMsg = () => ({
 const responseTransactionPoolMsg = () => ({
     'type': MessageType.RESPONSE_TRANSACTION_POOL,
     'data': JSON.stringify(getTransactionPool())
-});
-
-const queryLocationPoolMsg = () => ({
-    'type': MessageType.QUERY_LOCATION_POOL,
-    'data': null
-});
-const responseLocationPoolMsg = () => ({
-    'type': MessageType.RESPONSE_LOCATION_POOL,
-    'data': JSON.stringify(getLocationPool())
 });
 
 const initErrorHandler = (ws) => {
@@ -200,10 +166,6 @@ const broadcastLatest = () => {
 
 const broadCastTransactionPool = () => {
     broadcast(responseTransactionPoolMsg());
-};
-
-const broadCastLocationPool = () => {
-    broadcast(responseLocationPoolMsg());
 };
 
 const connectToPeers = (newPeer) => {

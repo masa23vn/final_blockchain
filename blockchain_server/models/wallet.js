@@ -26,6 +26,11 @@ const generatePrivateKey = () => {
     return privateKey.toString(16);
 };
 
+const generatePublicKey = (privateKey) => {
+    const key = EC.keyFromPrivate(privateKey, 'hex');
+    return key.getPublic().encode('hex');
+};
+
 const initWallet = () => {
     // let's not override existing private keys
     if (!existsSync(privateKeyLocation)) {
@@ -73,4 +78,6 @@ module.exports = {
     generatePrivateKey,
     initWallet,
     deleteWallet,
+    generatePrivateKey,
+    generatePublicKey,
 };

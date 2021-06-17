@@ -1,13 +1,10 @@
 const CryptoJS = require("crypto-js");
 const ecdsa = require('elliptic');
 const _ = require('lodash');
-const { saveToFile } = require('./File')
 
 const ec = new ecdsa.ec('secp256k1');
 
 const COINBASE_AMOUNT = 50;
-
-global.locationPool = [];
 
 // class Location
 class Location {
@@ -96,11 +93,6 @@ const hasDuplicates = (location) => {
         .includes(true);
 };
 
-// LocationPool
-const getLocationPool = () => {
-    return _.cloneDeep(locationPool);
-};
-
 const validateLocationPool = (aLocations) => {
     //check for duplicate location. Each location can be included only once
     if (hasDuplicates(aLocations)) {
@@ -112,43 +104,17 @@ const validateLocationPool = (aLocations) => {
         .reduce((a, b) => (a && b), true);
 };
 
-const setLocationPool = (aLocations) => {
-    if (validateLocationPool(aLocations)) {
-        locationPool = _.cloneDeep(aLocations);
-        const { saveToFile } = require('./File')
-        saveToFile(locationPool, 'keys/location.json')
-    }
-}
-
-const addToLocationPool = (location) => {
-    if (!validateLocation(location)) {
-        throw Error('Trying to add invalid location to pool');
-    }
-
-    for (let i = 0; i < locationPool.length; i++) {
-        let l = locationPool[i];
-        if (l.index + l.name + l.location === location.index + location.name + location.location) {
-            throw Error('Trying to add duplicate location to pool');
-        }
-    }
-
-    locationPool.push(location);
-    saveToFile(locationPool, 'keys/location.json')
-};
-
-const findLocation = (locationId) => {
+const findLocation = (locationPool, locationId) => {
     return locationPool.find((l) => locationId === l.id);
 };
 
-const findCurrentLocation = (address) => {
+const findCurrentLocation = (locationPool, address) => {
     return locationPool.find((l) => address === l.address);
 };
 
-const createLocation = (name, location, address) => {
-    const pool = getLocationPool();
-
+const createLocation = (index, name, location, address) => {
     let temp = new Location();
-    temp.index = pool[pool.length - 1] ? pool[pool.length - 1].index + 1 : 0;
+    temp.index = index;
     temp.name = name;
     temp.location = location;
     temp.address = address;
@@ -159,8 +125,8 @@ const createLocation = (name, location, address) => {
 
 
 module.exports = {
-    getLocationId, isValidAddress, validateLocation, 
-    getLocationPool, setLocationPool, addToLocationPool, findLocation,
+    getLocationId, isValidAddress, validateLocation, validateLocationPool,
+    findLocation,
     createLocation, findCurrentLocation,
     Location
 };

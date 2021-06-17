@@ -17,14 +17,13 @@ app.use(cors({
 }));
 
 const { saveToFile, readFromFile } = require('./models/File');
-const { getLocationId, isValidAddress, validateLocation, createLocation,
-  getLocationPool, setLocationPool, addToLocationPool, findLocation } = require('./models/location');
+const { findLocation } = require('./models/location');
 
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 
 const { getPublicFromWallet, initWallet } = require('./models/wallet');
-const { generateNextBlock, getBlockchain, generatenextBlockWithSupply, isValidBlockStructure, calculateHashForBlock,
-  sendTransaction, replaceChain, sendTransactionGuess, generateNextBlockGuess, findLatestItemBlock, findLatestItemPool,
+const { getBlockchain, getLatestLocation, generatenextBlockWithSupply, generateNextBlockWithLocation,
+  sendTransaction, replaceChain, findLatestItemBlock, findLatestItemPool,
   findItemBlock, findItemPool, getAllSupplies, getAllSuppliesByLocation,
   Block
 } = require('./models/Blockchain');
@@ -39,20 +38,6 @@ initWallet();
 // read blockchain and pool file
 const blockchainLocation = 'keys/chain.json';
 const poolLocation = 'keys/tx.json';
-const locateLocation = 'keys/location.json';
-
-if (fs.existsSync(locateLocation)) {
-  const data = readFromFile(locateLocation)
-  if (data && data.length > 1) {
-    setLocationPool(data)
-  }
-  else {
-    saveToFile(getLocationPool(), locateLocation)
-  }
-}
-else {
-  saveToFile(getLocationPool(), locateLocation)
-}
 
 if (fs.existsSync(blockchainLocation)) {
   const data = readFromFile(blockchainLocation)
@@ -95,7 +80,7 @@ app.get('/pool', (req, res) => {
 });
 
 app.get('/location', (req, res) => {
-  res.send(getLocationPool());
+  res.send(getLatestLocation());
 });
 
 app.get('/block/:id', (req, res) => {
@@ -183,9 +168,12 @@ app.post('/sendTransaction', (req, res) => {
   try {
     const { locationId, isFinish, itemID, name, description, price, amount } = req.body;
 
-    const location = findLocation(locationId);
+    const location = findLocation(getLatestLocation(), locationId);
     const supplyID = uuidv4();
     const finish = parseInt(isFinish) ? true : false;
+    if (!location) {
+      return res.status(400).send("Location not found. Please try again.");
+    }
 
     const resp = sendTransaction(0, location, location, finish, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
 
@@ -200,7 +188,7 @@ app.post('/sendTransactionContinue', (req, res) => {
   try {
     const { toId, isFinish, supplyID, amount } = req.body;
 
-    const toLocation = findLocation(toId)
+    const toLocation = findLocation(getLatestLocation(), toId)
     const lastTx = findLatestItemBlock(supplyID);
     const lastWaitTx = findLatestItemPool(supplyID);
     if (lastWaitTx) {
@@ -226,14 +214,24 @@ app.post('/sendTransactionContinue', (req, res) => {
 
 app.post('/addLocation', (req, res) => {
   try {
-    const { name, location, address } = req.body;
+    const { name, location } = req.body;
+    const { newBlock, privateKey } = generateNextBlockWithLocation(name, location);
+    if (newBlock === null) {
+      res.status(400).send('could not generate block');
+    } else {
+      const locateLocation = 'keys/location.json';
+      if (fs.existsSync(locateLocation)) {
+        const data = readFromFile(locateLocation).concat(privateKey);
+        saveToFile(data, locateLocation)
 
-    const temp = createLocation(name, location, address);
-    const resp = addToLocationPool(temp);
+      }
+      else {
+        saveToFile([privateKey], locateLocation);
+      }
 
-    res.send(200);
+      res.status(200).send({ newBlock, privateKey });
+    }
   } catch (e) {
-    console.log(e);
     res.status(400).send(e.message);
   }
 });

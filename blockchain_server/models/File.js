@@ -22,7 +22,6 @@ const readFromFile = (filename) => {
     }
 }
 
-
 module.exports = {
     saveToFile,
     readFromFile,

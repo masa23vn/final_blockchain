@@ -44,6 +44,7 @@ const WalletsView = () => {
     try {
       const res = await axiosGet(values.url, 'supplyByLocation')
       setData(res);
+      handleOpen(`Found ${res.length} supplies at your location`, 'success')
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')

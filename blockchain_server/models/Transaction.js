@@ -47,11 +47,11 @@ const validateTransaction = (transaction) => {
             return false;
         }
 
-        const foundLocation = locationPool.find(i => i.id === transaction.fromLocation.id);
-        if (!foundLocation) {
-            console.log('From location not found in tx: ' + transaction.id);
-            return false;
-        }
+        // const foundLocation = locationPool.find(i => i.id === transaction.fromLocation.id);
+        // if (!foundLocation) {
+        //     console.log('From location not found in tx: ' + transaction.id);
+        //     return false;
+        // }
     }
 
 
@@ -61,11 +61,11 @@ const validateTransaction = (transaction) => {
             return false;
         }
 
-        const foundLocation = locationPool.find(i => i.id === transaction.toLocation.id);
-        if (!foundLocation) {
-            console.log('To location not found in tx: ' + transaction.id);
-            return false;
-        }
+        // const foundLocation = locationPool.find(i => i.id === transaction.toLocation.id);
+        // if (!foundLocation) {
+        //     console.log('To location not found in tx: ' + transaction.id);
+        //     return false;
+        // }
     }
 
     return true;
