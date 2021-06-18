@@ -55,7 +55,7 @@ const useStyles = makeStyles(() => createStyles({
 const NAME = "CONFIRM_STEP1"
 const ConfirmSupply = (props) => {
   const classes = useStyles();
-  const { selected, isOpen, setIsOpen, values, handleOpen } = props;
+  const { selected, isOpen, setIsOpen, values, handleOpen, handleGetSupplies } = props;
 
   const handleCloseConfirmDialog = () => {
     setIsOpen('');
@@ -65,6 +65,7 @@ const ConfirmSupply = (props) => {
     try {
       const res = await axiosPost(values.url, 'mineBlockWithSupply', { supplyID: selected?.supplyID })
       handleOpen("Confirmed supply successfully", "success");
+      handleGetSupplies();
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')
@@ -108,6 +109,25 @@ const ConfirmSupply = (props) => {
             name="name"
             label="Name"
             value={selected?.name}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+            variant="outlined"
+            inputProps={{
+              readOnly: true,
+              disabled: true,
+            }}
+          />
+          <TextField
+            className={`${classes.textField}`}
+            size="small"
+            autoFocus
+            id="price"
+            name="price"
+            label="Price"
+            type="number"
+            value={selected?.price}
             InputLabelProps={{
               shrink: true,
             }}

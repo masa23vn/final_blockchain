@@ -17,7 +17,7 @@ app.use(cors({
 }));
 
 const { saveToFile, readFromFile } = require('./models/File');
-const { findLocation } = require('./models/location');
+const { findLocation, findCurrentLocation } = require('./models/location');
 
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 
@@ -168,14 +168,20 @@ app.post('/sendTransaction', (req, res) => {
   try {
     const { locationId, isFinish, itemID, name, description, price, amount } = req.body;
 
-    const location = findLocation(getLatestLocation(), locationId);
+    const fromLocation = findCurrentLocation(getLatestLocation(), getPublicFromWallet());
+    const toLocation = findLocation(getLatestLocation(), locationId);
     const supplyID = uuidv4();
     const finish = parseInt(isFinish) ? true : false;
-    if (!location) {
+
+    if (!fromLocation) {
       return res.status(400).send("Location not found. Please try again.");
     }
 
-    const resp = sendTransaction(0, location, location, finish, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
+    if (!toLocation) {
+      return res.status(400).send("Location not found. Please try again.");
+    }
+
+    const resp = sendTransaction(0, fromLocation, toLocation, finish, supplyID, itemID, name, description, parseInt(price), parseInt(amount));
 
     res.send(resp);
   } catch (e) {
