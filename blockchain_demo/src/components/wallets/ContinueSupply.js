@@ -55,7 +55,7 @@ const useStyles = makeStyles(() => createStyles({
 const NAME = "CONFIRM_STEP2"
 const ContinueSupply = (props) => {
   const classes = useStyles();
-  const { selected, isOpen, setIsOpen, values, handleOpen } = props;
+  const { selected, isOpen, setIsOpen, values, handleOpen, handleGetSupplies  } = props;
 
   const [error, setError] = useState({
     locationID: false,
@@ -120,6 +120,7 @@ const ContinueSupply = (props) => {
         amount: newSupply.amount
       })
       handleOpen("Continued supply successfully", "success");
+      handleGetSupplies();
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')

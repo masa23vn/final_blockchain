@@ -25,7 +25,7 @@ import { Search as SearchIcon } from 'react-feather';
 
 const WalletsList = (props) => {
   const [supplies, setSupplies] = useState([]);
-  const { data, setSelected } = props;
+  const { data, selected, setSelected } = props;
 
   useEffect(() => {
     if (data) {
@@ -46,7 +46,12 @@ const WalletsList = (props) => {
         {(supplies || []).map((i, n) => {
           return (
             <div key={n} >
-              <div style={{ minHeight: '50px', padding: '12px 20px 10px 20px' }} onClick={e => setSelected(i)}>
+              <div
+                style={{
+                  minHeight: '50px', padding: '12px 20px 10px 20px',
+                  backgroundColor: i?.data[0]?.supplyID === selected?.data[0]?.supplyID ? '#64b5f6' : ''
+                }}
+                onClick={e => setSelected(i)}>
                 {i.data[0]?.supplyID}
               </div>
               <Divider />

@@ -10,12 +10,12 @@ import {
   Snackbar,
   Alert
 } from '@material-ui/core';
-import { decryptPrivateKey, getPublicKey } from '../../helper/sign';
+import AddSupply from './AddSupply';
 import { LINK } from '../../constant/constant'
 import axios from 'axios';
 
 const WalletsLogin = (props) => {
-  const { values, setValues, handleGetPublicKey, handleGetSupplies } = props
+  const { values, setValues, handleGetPublicKey, handleGetSupplies, handleOpen } = props
   const [errors, setErrors] = useState({
     url: '',
     password: ''
@@ -48,6 +48,11 @@ const WalletsLogin = (props) => {
       password: event.target.value.trim()
     });
   };
+
+  const [isOpen, setIsOpen] = useState('');
+  const handleAddSupply = () => {
+    setIsOpen("ADD_SUPPLY")
+  }
 
   return (
     <>
@@ -107,6 +112,15 @@ const WalletsLogin = (props) => {
             >
               Get your supplies
           </Button>
+            <Button
+              style={{ marginLeft: '10px' }}
+              color="primary"
+              variant="contained"
+              onClick={i => handleAddSupply()}
+            >
+              Add new supply
+          </Button>
+            <AddSupply isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
           </Box>
         </Card>
       </form>

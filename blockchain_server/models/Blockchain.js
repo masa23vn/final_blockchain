@@ -306,11 +306,13 @@ const getAllSuppliesByLocation = () => {
     if (!location) {
         throw Error("Can't not find your location")
     }
+    const unfinished = getTransactionPool();
+    const supplyList = txs.concat(unfinished);
 
-    const uniqueSupply = [...new Set(txs.map(tx => tx.supplyID))]
+    const uniqueSupply = [...new Set(supplyList.map(tx => tx.supplyID))]
     const list = uniqueSupply.map(sp => {
         let tx = txs.filter(tx => tx.supplyID === sp);
-        const unconfirm = findItemPool(tx[0].supplyID);
+        const unconfirm = findItemPool(sp);
         if (unconfirm.length > 0) {
             tx = tx.concat(unconfirm)
         }

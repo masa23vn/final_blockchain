@@ -8,7 +8,7 @@ import {
   Grid
 } from '@material-ui/core';
 import { LINK } from '../constant/constant'
-import { axiosGet } from '../utils/connectAxios'
+import { axiosGet, axiosPost } from '../utils/connectAxios'
 import WalletsList from '../components/wallets/WalletsList';
 import WalletsLogin from '../components/wallets/WalletsLogin';
 import WalletsDetail from '../components/wallets/WalletsDetail';
@@ -44,13 +44,21 @@ const WalletsView = () => {
     try {
       const res = await axiosGet(values.url, 'supplyByLocation')
       setData(res);
+
+      const temp = res.find(i => i?.data[0]?.supplyID === selected?.data[0]?.supplyID)
+      console.log(temp)
+      if (temp) {
+        setSelected(temp)
+      }
+      else {
+        setSelected(null)
+      }
       handleOpen(`Found ${res.length} supplies at your location`, 'success')
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')
     }
   }
-
 
   // snack bar
   const [open, setOpen] = useState(false);
@@ -65,7 +73,6 @@ const WalletsView = () => {
     setOpen(false);
   };
 
-  console.log(selected)
   return (
     <>
       <Snackbar
@@ -93,7 +100,13 @@ const WalletsView = () => {
         <Container maxWidth={false}>
           <h3 style={{ marginTop: '20px', marginLeft: '15px' }}>Connect to your server</h3>
           <Box style={{ paddingTop: '10px' }}>
-            <WalletsLogin values={values} setValues={setValues} handleGetPublicKey={handleGetPublicKey} handleGetSupplies={handleGetSupplies} />
+            <WalletsLogin
+              values={values}
+              setValues={setValues}
+              handleGetPublicKey={handleGetPublicKey}
+              handleGetSupplies={handleGetSupplies}
+              handleOpen={handleOpen}
+            />
           </Box>
           <Box style={{ paddingTop: '10px' }}>
           </Box>
@@ -110,7 +123,7 @@ const WalletsView = () => {
               xl={4}
               xs={12}
             >
-              <WalletsList data={data} setSelected={setSelected} />
+              <WalletsList data={data} selected={selected} setSelected={setSelected} />
             </Grid>
             <Grid style={{ pt: 3, minHeight: '700px', maxHeight: '700px' }}
               item
@@ -119,7 +132,7 @@ const WalletsView = () => {
               xl={8}
               xs={12}
             >
-              <WalletsDetail values={values} selected={selected} handleOpen={handleOpen} />
+              <WalletsDetail values={values} selected={selected} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
             </Grid>
           </Grid>
         </Container>

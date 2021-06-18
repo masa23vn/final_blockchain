@@ -22,7 +22,7 @@ const WalletsDetail = (props) => {
   const [supply, setSupply] = useState();
   const [supplyList, setList] = useState([]);
   const [unconfirm, setUnconfirm] = useState(false);
-  const { selected, values, handleOpen } = props;
+  const { selected, values, handleOpen, handleGetSupplies } = props;
 
   useEffect(async () => {
     if (selected) {
@@ -30,6 +30,11 @@ const WalletsDetail = (props) => {
       setSupply(temp[0]);
       setList(temp);
       setUnconfirm(selected.hasUnConfirm)
+    }
+    else {
+      setSupply(null);
+      setList(null);
+      setUnconfirm(null)
     }
 
   }, [selected])
@@ -54,8 +59,8 @@ const WalletsDetail = (props) => {
               <Button variant="contained" style={{ backgroundColor: '#1DAF1A' }} onClick={i => handleConfirm()}>
                 {unconfirm ? "Confirm" : "Continue Supply"}
               </Button>
-              <ConfirmSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
-              <ContinueSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
+              <ConfirmSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
+              <ContinueSupply selected={supply} isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
             </>
             : <Typography><b>Supply's Info</b></Typography>
           }
