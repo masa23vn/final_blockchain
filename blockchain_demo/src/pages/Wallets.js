@@ -8,7 +8,7 @@ import {
   Grid
 } from '@material-ui/core';
 import { LINK } from '../constant/constant'
-import { axiosGet, axiosPost } from '../utils/connectAxios'
+import { axiosGet, axiosPost, setAxiosAuth } from '../utils/connectAxios'
 import WalletsList from '../components/wallets/WalletsList';
 import WalletsLogin from '../components/wallets/WalletsLogin';
 import WalletsDetail from '../components/wallets/WalletsDetail';
@@ -30,6 +30,10 @@ const WalletsView = () => {
     window.scrollTo(0, 0)
   }, [])
 
+  useEffect(() => {
+    setAxiosAuth(values?.password, values?.password)
+  }, [values])
+
   const handleGetPublicKey = async () => {
     try {
       const res = await axiosGet(values.url, 'address')
@@ -42,7 +46,7 @@ const WalletsView = () => {
 
   const handleGetSupplies = async () => {
     try {
-      const res = await axiosGet(values.url, 'supplyByLocation')
+      const res = await axiosPost(values.url, 'supplyByLocation')
       setData(res);
 
       const temp = res.find(i => i?.data[0]?.supplyID === selected?.data[0]?.supplyID)

@@ -3,6 +3,8 @@ const cors = require("cors");
 require('console-stamp')(console, '[HH:MM:ss.l]');
 require('dotenv').config()
 const fs = require('fs');
+const CryptoJS = require("crypto-js");
+const ecdsa = require('elliptic');
 const { v4: uuidv4 } = require('uuid');
 const _ = require('lodash');
 const app = express();
@@ -21,7 +23,7 @@ const { findLocation, findCurrentLocation } = require('./models/location');
 
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 
-const { getPublicFromWallet, initWallet } = require('./models/wallet');
+const { getPublicFromWallet, getPrivateFromWallet, initWallet } = require('./models/wallet');
 const { getBlockchain, getLatestLocation, generatenextBlockWithSupply, generateNextBlockWithLocation,
   sendTransaction, replaceChain, findLatestItemBlock, findLatestItemPool,
   findItemBlock, findItemPool, getAllSupplies, getAllSuppliesByLocation,
@@ -64,6 +66,27 @@ if (fs.existsSync(poolLocation)) {
 else {
   saveToFile([], poolLocation)
 }
+
+//middleware
+app.use('/connect', function (req, res, next) {
+  console.log('Request Type:', req.method)
+
+  if (!req.headers.authorization || req.headers.authorization.indexOf('Basic ') === -1) {
+    return res.status(401).send('Missing Authorization Header');
+  }
+  const base64Credentials = req.headers.authorization.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  // default password: 'password'
+  const hash = process.env.PASS || '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'
+  var newhHash = CryptoJS.SHA256(password).toString();;
+
+  if (newhHash !== hash) {
+    return res.status(401).send("Wrong password");
+  }
+  next();
+})
 
 // route
 app.get('/blocks', (req, res) => {
@@ -134,7 +157,7 @@ app.get('/supply/:id', (req, res) => {
   }
 });
 
-app.get('/supplyByLocation', (req, res) => {
+app.post('/connect/supplyByLocation', (req, res) => {
   try {
     const supplies = getAllSuppliesByLocation()
     res.send(supplies);
@@ -148,7 +171,9 @@ app.get('/peers', (req, res) => {
   res.send(getSockets().map((s) => s._socket.remoteAddress + ':' + s._socket.remotePort));
 });
 
-app.post('/mineBlockWithSupply', (req, res) => {                 //  all transaction pool
+
+// Need authen
+app.post('/connect/mineBlockWithSupply', (req, res) => {                 //  all transaction pool
   try {
     const { supplyID } = req.body;
     const newBlock = generatenextBlockWithSupply(supplyID);
@@ -163,8 +188,7 @@ app.post('/mineBlockWithSupply', (req, res) => {                 //  all transac
 
 });
 
-// TODO
-app.post('/sendTransaction', (req, res) => {
+app.post('/connect/sendTransaction', (req, res) => {
   try {
     const { locationId, isFinish, itemID, name, description, price, amount } = req.body;
 
@@ -190,7 +214,7 @@ app.post('/sendTransaction', (req, res) => {
   }
 });
 
-app.post('/sendTransactionContinue', (req, res) => {
+app.post('/connect/sendTransactionContinue', (req, res) => {
   try {
     const { toId, isFinish, supplyID, amount } = req.body;
 
@@ -218,7 +242,14 @@ app.post('/sendTransactionContinue', (req, res) => {
   }
 });
 
-app.post('/addLocation', (req, res) => {
+app.post('/connect/addLocation', (req, res) => {
+  const ec = new ecdsa.ec('secp256k1');
+  const key = ec.keyFromPublic(getPublicFromWallet(), 'hex');
+  const validSignature = key.verify(getPublicFromWallet(), "3046022100a09fc348404e6a0a8363db3e668b56ddacb556dec388543dff754e9fcb4fb1f4022100db16fb41250cc5726493c766387471761fa5d3269d30b52c014f16c203d74b6a");
+  if (!validSignature) {
+    return res.status(401).send("Only admin's server is allowed to add location");
+  }
+
   try {
     const { name, location } = req.body;
     const { newBlock, privateKey } = generateNextBlockWithLocation(name, location);
@@ -229,7 +260,6 @@ app.post('/addLocation', (req, res) => {
       if (fs.existsSync(locateLocation)) {
         const data = readFromFile(locateLocation).concat(privateKey);
         saveToFile(data, locateLocation)
-
       }
       else {
         saveToFile([privateKey], locateLocation);
@@ -242,7 +272,7 @@ app.post('/addLocation', (req, res) => {
   }
 });
 
-app.post('/addPeer', (req, res) => {
+app.post('/connect/addPeer', (req, res) => {
   try {
     connectToPeers(req.body.peer);
     res.send(200);
@@ -251,7 +281,7 @@ app.post('/addPeer', (req, res) => {
   }
 });
 
-app.post('/stop', (req, res) => {
+app.post('/connect/stop', (req, res) => {
   res.send({ 'msg': 'stopping server' });
   process.exit();
 });

@@ -68,6 +68,19 @@ const validateTransaction = (transaction) => {
         // }
     }
 
+    try {
+        const key = ec.keyFromPublic(transaction.fromLocation.address, 'hex');
+        const validSignature = key.verify(transaction.id, transaction.signature);
+        if (!validSignature) {
+            console.log('invalid signature in tx; ', transaction.id);
+            return false;
+        }
+    }
+    catch (error) {
+        console.log('invalid signature in tx; ', transaction.id);
+        return false;
+    }
+
     return true;
 };
 
