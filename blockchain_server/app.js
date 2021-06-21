@@ -79,10 +79,16 @@ app.use('/connect', function (req, res, next) {
   const [username, password] = credentials.split(':');
 
   // default password: 'password'
-  const hash = process.env.PASS || '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'
-  var newhHash = CryptoJS.SHA256(password).toString();;
-
-  if (newhHash !== hash) {
+  const passwordLocation = 'keys/password';
+  let savedPass = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8'; //default: 'password'
+  if (fs.existsSync(passwordLocation)) {
+    let temp = fs.readFileSync(passwordLocation, 'utf8');
+    if (temp && temp !== '') {
+      savedPass = temp;
+    }
+  }
+  var newhHash = CryptoJS.SHA256(password).toString();
+  if (newhHash !== savedPass) {
     return res.status(401).send("Wrong password");
   }
   next();
@@ -284,6 +290,19 @@ app.post('/connect/addPeer', (req, res) => {
 app.post('/connect/stop', (req, res) => {
   res.send({ 'msg': 'stopping server' });
   process.exit();
+});
+
+app.post('/connect/changePass', (req, res) => {
+  try {
+    const { newPass } = req.body;
+
+    const passwordLocation = 'keys/password';
+    var newhHash = CryptoJS.SHA256(newPass).toString();;
+    fs.writeFileSync(passwordLocation, newhHash);
+    res.status(200).send();
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
 });
 
 // catch 404 and forward to error handler

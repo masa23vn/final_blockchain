@@ -13,6 +13,7 @@ import {
 import AddSupply from './AddSupply';
 import { LINK } from '../../constant/constant'
 import axios from 'axios';
+import ChangePassword from './ChangePassword';
 
 const WalletsLogin = (props) => {
   const { values, setValues, handleGetPublicKey, handleGetSupplies, handleOpen } = props
@@ -54,6 +55,10 @@ const WalletsLogin = (props) => {
     setIsOpen("ADD_SUPPLY")
   }
 
+  const handleChangePassServer = () => {
+    setIsOpen("CHANGE_PASSWORD")
+  }
+
   return (
     <>
       <form>
@@ -92,35 +97,58 @@ const WalletsLogin = (props) => {
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'flex-end',
+              justifyContent: 'space-between',
               p: 2
             }}
           >
-            <Button
-              style={{ marginLeft: '10px' }}
-              color="primary"
-              variant="contained"
-              onClick={i => handleGetPublicKey()}
+            <Box
+              sx={{
+                display: 'flex',
+              }}
             >
-              Get public key
-          </Button>
-            <Button
-              style={{ marginLeft: '10px' }}
-              color="primary"
-              variant="contained"
-              onClick={i => handleGetSupplies()}
+              <Button
+                style={{ marginLeft: '10px' }}
+                color="primary"
+                variant="contained"
+                onClick={i => handleGetPublicKey()}
+              >
+                Get public key
+              </Button>
+              <Button
+                style={{ marginLeft: '10px' }}
+                color="primary"
+                variant="contained"
+                onClick={i => handleChangePassServer()}
+              >
+                Change password
+              </Button>
+              <ChangePassword isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+              }}
             >
-              Get your supplies
-          </Button>
-            <Button
-              style={{ marginLeft: '10px' }}
-              color="primary"
-              variant="contained"
-              onClick={i => handleAddSupply()}
-            >
-              Add new supply
-          </Button>
-            <AddSupply isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
+              <Button
+                style={{ marginLeft: '10px' }}
+                color="primary"
+                variant="contained"
+                onClick={i => handleGetSupplies()}
+              >
+                Get your supplies
+              </Button>
+              <Button
+                style={{ marginLeft: '10px' }}
+                color="primary"
+                variant="contained"
+                onClick={i => handleAddSupply()}
+              >
+                Add new supply
+              </Button>
+              <AddSupply isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
+            </Box>
+
           </Box>
         </Card>
       </form>
