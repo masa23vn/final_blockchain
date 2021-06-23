@@ -18,7 +18,7 @@ import { axiosGet, axiosPost } from '../../utils/connectAxios'
 const NAME = "ADD_LOCATION"
 const AddLocation = (props) => {
   const classes = useStyles();
-  const { isOpen, setIsOpen, values, handleOpen } = props;
+  const { isOpen, setIsOpen, values, handleOpen, setPrivateKey } = props;
   const [newLocation, setNewLocation] = useState({
     name: '',
     location: '',
@@ -62,13 +62,14 @@ const AddLocation = (props) => {
         return;
       }
 
-      const res = await axiosPost(values.url, 'addLocation', newLocation)
-      handleOpen("Add location successfully", "success");
+      const res = await axiosPost(values.url, 'addLocation', newLocation);
+      setPrivateKey(res?.privateKey ? res?.privateKey : '');
+      setIsOpen("PRIVATE_DIALOG")
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')
+      setIsOpen('');
     }
-    setIsOpen('');
   }
 
   const handleChange = (event) => {
@@ -108,7 +109,7 @@ const AddLocation = (props) => {
             autoFocus
             id="name"
             name="name"
-            label="Name"
+            label="Private key"
             value={newLocation?.name}
             onChange={handleChange}
             InputLabelProps={{
@@ -145,7 +146,6 @@ const AddLocation = (props) => {
         <Button className={`${classes.button} ${classes.addButton}`} disabled={!open} onClick={handleAdd} variant="contained">
           Add
         </Button>
-
       </DialogActions>
     </Dialog>
   );

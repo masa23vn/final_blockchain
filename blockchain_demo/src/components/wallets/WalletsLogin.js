@@ -15,6 +15,7 @@ import { LINK } from '../../constant/constant'
 import axios from 'axios';
 import ChangePassword from './ChangePassword';
 import AddLocation from './AddLocation';
+import PrivateDialog from './PrivateDialog';
 
 const WalletsLogin = (props) => {
   const { values, setValues, handleGetPublicKey, handleGetSupplies, handleOpen } = props
@@ -22,6 +23,7 @@ const WalletsLogin = (props) => {
     url: '',
     password: ''
   })
+  const [privateKey, setPrivateKey] = useState('')
 
   const handleChangeUrl = (event) => {
     if (event.target.value.trim() !== '') {
@@ -160,7 +162,8 @@ const WalletsLogin = (props) => {
               >
                 Add location
               </Button>
-              <AddLocation isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
+              <AddLocation isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} setPrivateKey={setPrivateKey}/>
+              <PrivateDialog isOpen={isOpen} setIsOpen={setIsOpen} privateKey={privateKey} />
             </Box>
 
           </Box>
