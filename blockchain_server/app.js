@@ -78,6 +78,10 @@ app.use('/connect', function (req, res, next) {
   const base64Credentials = req.headers.authorization.split(' ')[1];
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
+  console.log(password)
+  if (!password || password === '') {
+    return res.status(401).send("Wrong password");
+  }
 
   // default password: 'password'
   const passwordLocation = 'keys/password';
@@ -98,11 +102,6 @@ app.use('/connect', function (req, res, next) {
 // route
 app.get('/blocks', (req, res) => {
   res.send(getBlockchain());
-});
-
-app.get('/address', (req, res) => {
-  const address = getPublicFromWallet();
-  res.send({ 'address': address });
 });
 
 app.get('/pool', (req, res) => {
@@ -180,6 +179,12 @@ app.get('/peers', (req, res) => {
 
 
 // Need authen
+app.post('/connect/address', (req, res) => {
+  const address = getPublicFromWallet();
+  res.send({ 'address': address });
+});
+
+
 app.post('/connect/mineBlockWithSupply', (req, res) => {                 //  all transaction pool
   try {
     const { supplyID } = req.body;
@@ -262,16 +267,7 @@ app.post('/connect/addLocation', (req, res) => {
     if (newBlock === null) {
       res.status(400).send('could not generate block');
     } else {
-      const locateLocation = 'keys/location.json';
-      if (fs.existsSync(locateLocation)) {
-        const data = readFromFile(locateLocation).concat(privateKey);
-        saveToFile(data, locateLocation)
-      }
-      else {
-        saveToFile([privateKey], locateLocation);
-      }
-
-      res.status(200).send({ newBlock, privateKey });
+      res.status(200).send({ privateKey });
     }
   } catch (e) {
     res.status(400).send(e.message);

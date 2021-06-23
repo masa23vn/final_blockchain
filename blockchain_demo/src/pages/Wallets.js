@@ -36,8 +36,8 @@ const WalletsView = () => {
 
   const handleGetPublicKey = async () => {
     try {
-      const res = await axiosGet(values.url, 'address')
-      handleOpen(res?.address, "success");
+      const res = await axiosPost(values.url, 'address')
+      handleOpen("Your public key: " + res?.address, "success");
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')
