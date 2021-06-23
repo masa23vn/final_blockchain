@@ -14,6 +14,7 @@ import AddSupply from './AddSupply';
 import { LINK } from '../../constant/constant'
 import axios from 'axios';
 import ChangePassword from './ChangePassword';
+import AddLocation from './AddLocation';
 
 const WalletsLogin = (props) => {
   const { values, setValues, handleGetPublicKey, handleGetSupplies, handleOpen } = props
@@ -57,6 +58,10 @@ const WalletsLogin = (props) => {
 
   const handleChangePassServer = () => {
     setIsOpen("CHANGE_PASSWORD")
+  }
+
+  const handleAddLocation = () => {
+    setIsOpen("ADD_LOCATION")
   }
 
   return (
@@ -136,7 +141,7 @@ const WalletsLogin = (props) => {
                 variant="contained"
                 onClick={i => handleGetSupplies()}
               >
-                Get your supplies
+                Get supplies
               </Button>
               <Button
                 style={{ marginLeft: '10px' }}
@@ -144,9 +149,18 @@ const WalletsLogin = (props) => {
                 variant="contained"
                 onClick={i => handleAddSupply()}
               >
-                Add new supply
+                Add supply
               </Button>
               <AddSupply isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} handleGetSupplies={handleGetSupplies} />
+              <Button
+                style={{ marginLeft: '10px' }}
+                color="primary"
+                variant="contained"
+                onClick={i => handleAddLocation()}
+              >
+                Add location
+              </Button>
+              <AddLocation isOpen={isOpen} setIsOpen={setIsOpen} values={values} handleOpen={handleOpen} />
             </Box>
 
           </Box>

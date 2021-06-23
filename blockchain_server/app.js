@@ -35,6 +35,7 @@ const { connectToPeers, getSockets, initP2PServer } = require('./socket/p2p');
 const httpPort = parseInt(process.env.HTTP_PORT) || 9000;
 const p2pPort = parseInt(process.env.P2P_PORT) || 8000;
 
+const ec = new ecdsa.ec('secp256k1');
 initWallet();
 
 // read blockchain and pool file
@@ -249,7 +250,6 @@ app.post('/connect/sendTransactionContinue', (req, res) => {
 });
 
 app.post('/connect/addLocation', (req, res) => {
-  const ec = new ecdsa.ec('secp256k1');
   const key = ec.keyFromPublic(getPublicFromWallet(), 'hex');
   const validSignature = key.verify(getPublicFromWallet(), "3046022100a09fc348404e6a0a8363db3e668b56ddacb556dec388543dff754e9fcb4fb1f4022100db16fb41250cc5726493c766387471761fa5d3269d30b52c014f16c203d74b6a");
   if (!validSignature) {
