@@ -39,7 +39,7 @@ const WalletsSupplies = (props) => {
   useEffect(() => {
     let filtered = supplies;
     if (searchInput !== '') {
-      filtered = filtered.filter(i => i?.id.includes(searchInput));
+      filtered = filtered.filter(i => i?.supplyID.includes(searchInput));
     }
     setFilterList(filtered)
     setPage(0)
