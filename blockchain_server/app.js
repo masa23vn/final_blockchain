@@ -68,6 +68,10 @@ else {
   saveToFile([], poolLocation)
 }
 
+if ((process.env.API || "localhost:8000") !== "localhost:8000") {
+  connectToPeers("ws://localhost:8000");
+}
+
 //middleware
 app.use('/connect', function (req, res, next) {
   console.log('Request Type:', req.method)
