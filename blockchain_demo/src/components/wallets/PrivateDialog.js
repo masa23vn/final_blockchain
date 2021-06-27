@@ -56,7 +56,6 @@ const NAME = "PRIVATE_DIALOG"
 const PrivateDialog = (props) => {
   const classes = useStyles();
   const { isOpen, setIsOpen, privateKey } = props;
-  console.log(privateKey)
   const handleClose = () => {
     setIsOpen('');
   }

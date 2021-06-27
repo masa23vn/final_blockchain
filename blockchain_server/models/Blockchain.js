@@ -8,18 +8,25 @@ const { addToTransactionPool, getTransactionPool, updateTransactionPool } = requ
 const { createLocation, findCurrentLocation, validateLocationPool } = require('./Location');
 
 class Block {
-    constructor(index, hash, previousHash, timestamp, data, location) {
+    constructor(index, hash, previousHash, timestamp, data, location, admin) {
         this.index = index;
         this.previousHash = previousHash;
         this.timestamp = timestamp;
         this.data = data;
         this.location = location;
+        this.admin = admin;
         this.hash = hash;
     }
 }
 
 const genesisBlock = new Block(
-    0, '5efade649896b73d85423254a8a645dd81a97304b15c9e791ec5ef2c4b6b2f60', '', 1465154705, [], []
+    0, 
+    '5efade649896b73d85423254a8a645dd81a97304b15c9e791ec5ef2c4b6b2f60', 
+    '', 
+    1465154705, 
+    [], 
+    [], 
+    '3046022100a09fc348404e6a0a8363db3e668b56ddacb556dec388543dff754e9fcb4fb1f4022100db16fb41250cc5726493c766387471761fa5d3269d30b52c014f16c203d74b6a'
 );
 
 let blockchain = [genesisBlock];
@@ -31,6 +38,8 @@ const getLatestBlock = () => blockchain[blockchain.length - 1];
 
 const getLatestLocation = () => getLatestBlock().location;
 
+const getAdminSignature = () => getLatestBlock().admin;
+
 const getCurrentTimestamp = () => new Date().getTime();
 
 // create block function
@@ -39,7 +48,7 @@ const generateRawNextBlock = (blockData) => {
     const nextIndex = previousBlock.index + 1;
     const nextTimestamp = getCurrentTimestamp();
 
-    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData, previousBlock.location);
+    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, blockData, previousBlock.location, previousBlock.admin);
     if (addBlock(newBlock)) {
         const { broadcastLatest } = require('../socket/p2p')
         broadcastLatest();
@@ -56,7 +65,7 @@ const generateRawNextBlockLocation = (location) => {
     const nextTimestamp = getCurrentTimestamp();
     let newLocationList = previousBlock.location.concat(location);
 
-    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, [], newLocationList);
+    const newBlock = mineBlock(nextIndex, previousBlock.hash, nextTimestamp, [], newLocationList, previousBlock.admin);
     if (addBlock(newBlock)) {
         const { broadcastLatest } = require('../socket/p2p')
         broadcastLatest();
@@ -76,6 +85,22 @@ const generateNextBlockWithLocation = (name, location) => {
 
     const newBlock = generateRawNextBlockLocation(newLocation);
     return { newBlock, privateKey }
+};
+
+const generateNextBlockWithLocationAndPublicKey = (name, location, publicKey) => {
+    const list = getLatestLocation();
+    const index = list.length > 0 ? list[list.length - 1].index + 1 : 0;
+    const address = publicKey;
+    
+    const locationList = getLatestLocation();
+    const check = locationList.find(location => location.address === address);
+    if (check) {
+        throw Error("Duplicated public key when adding new location.");
+    }
+    const newLocation = createLocation(index, name, location, address);
+
+    const newBlock = generateRawNextBlockLocation(newLocation);
+    return { newBlock }
 };
 
 const generatenextBlockWithSupply = (supplyID) => {
@@ -103,10 +128,10 @@ const sendTransactionGuess = (tx) => {
 };
 
 const calculateHashForBlock = (block) =>
-    calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.location);
+    calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.location, block.admin);
 
-const calculateHash = (index, previousHash, timestamp, data, location) =>
-    CryptoJS.SHA256(index + previousHash + timestamp + data + location).toString();
+const calculateHash = (index, previousHash, timestamp, data, location, admin) =>
+    CryptoJS.SHA256(index + previousHash + timestamp + data + location + admin).toString();
 
 const addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
@@ -150,6 +175,9 @@ const isValidBlockStructure = (block) => {
     } else if (typeof block.timestamp !== 'number') {
         console.log('invalid block timestamp type');
         return false;
+    } else if (typeof block.admin !== 'string') {
+        console.log('invalid block admin signature');
+        return false;
     }
     return true;
 };
@@ -173,6 +201,10 @@ const isValidNewBlock = (newBlock, previousBlock) => {
     }
     else if (calculateHashForBlock(newBlock) !== newBlock.hash) {
         console.log('invalid hash, got:' + newBlock.hash);
+        return false;
+    }
+    else if (previousBlock.admin !== newBlock.admin) {
+        console.log('invalid admin signature');
         return false;
     }
 
@@ -222,9 +254,9 @@ const replaceChain = (newBlocks) => {
     }
 };
 
-const mineBlock = (index, previousHash, timestamp, data, location) => {
-    const hash = calculateHash(index, previousHash, timestamp, data, location);
-    return new Block(index, hash, previousHash, timestamp, data, location);
+const mineBlock = (index, previousHash, timestamp, data, location, admin) => {
+    const hash = calculateHash(index, previousHash, timestamp, data, location, admin);
+    return new Block(index, hash, previousHash, timestamp, data, location, admin);
 };
 
 const handleReceivedTransaction = (transaction) => {
@@ -347,4 +379,6 @@ module.exports = {
     getAllSuppliesByLocation,
     generatenextBlockWithSupply,
     generateNextBlockWithLocation,
+    generateNextBlockWithLocationAndPublicKey,
+    getAdminSignature,
 };

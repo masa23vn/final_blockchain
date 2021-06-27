@@ -49,7 +49,7 @@ const initMessageHandler = (ws) => {
         try {
             const message = JSONToObject(data);
             if (message === null) {
-                console.log('could not parse received JSON message: ' + data);
+                console.log('Could not parse received JSON message: ' + data);
                 return;
             }
             console.log('Received message' + JSON.stringify(message));

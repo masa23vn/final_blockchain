@@ -22,10 +22,12 @@ const AddLocation = (props) => {
   const [newLocation, setNewLocation] = useState({
     name: '',
     location: '',
+    key: '',
   })
   const [error, setError] = useState({
     name: false,
     location: false,
+    key: false,
   })
 
   useEffect(() => {
@@ -33,10 +35,12 @@ const AddLocation = (props) => {
       setNewLocation({
         name: '',
         location: '',
+        key: '',
       })
       setError({
         name: false,
         location: false,
+        key: false,
       })
     }
   }, [isOpen]);
@@ -62,9 +66,16 @@ const AddLocation = (props) => {
         return;
       }
 
-      const res = await axiosPost(values.url, 'addLocation', newLocation);
-      setPrivateKey(res?.privateKey ? res?.privateKey : '');
-      setIsOpen("PRIVATE_DIALOG")
+      if (newLocation.key.trim() === '') {
+        const res = await axiosPost(values.url, 'addLocation', newLocation);
+        setPrivateKey(res?.privateKey ? res?.privateKey : '');
+        setIsOpen("PRIVATE_DIALOG")  
+      }
+      else {
+        const res = await axiosPost(values.url, 'addLocationWithPublicKey', newLocation);
+        handleOpen("Add new location successfully", "success");
+        setIsOpen('');
+      }
     }
     catch (error) {
       handleOpen(error?.response?.data || error?.message, 'error')
@@ -109,7 +120,7 @@ const AddLocation = (props) => {
             autoFocus
             id="name"
             name="name"
-            label="Private key"
+            label="Name"
             value={newLocation?.name}
             onChange={handleChange}
             InputLabelProps={{
@@ -125,7 +136,7 @@ const AddLocation = (props) => {
             size="small"
             id="location"
             name="location"
-            label="Location's address"
+            label="Address"
             value={newLocation?.location}
             onChange={handleChange}
             InputLabelProps={{
@@ -135,6 +146,20 @@ const AddLocation = (props) => {
             variant="outlined"
             error={error.location}
             helperText={error.location ? "Location's address must not be blank" : ''}
+          />
+          <TextField
+            className={`${classes.textField}`}
+            size="small"
+            id="key"
+            name="key"
+            label="Public key (leave blank to auto generate)"
+            value={newLocation?.key}
+            onChange={handleChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            fullWidth
+            variant="outlined"
           />
 
         </Box>

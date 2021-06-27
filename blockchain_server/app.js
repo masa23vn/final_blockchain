@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({
   extended: true
 }));
-const URL = process.env.API || "http://localhost:3000";
+const URL = process.env.WEB || "http://localhost:3000";
 app.use(cors({
   origin: URL
 }));
@@ -24,9 +24,9 @@ const { findLocation, findCurrentLocation } = require('./models/location');
 const { getTransactionPool, setPool } = require('./models/transactionPool');
 
 const { getPublicFromWallet, getPrivateFromWallet, initWallet } = require('./models/wallet');
-const { getBlockchain, getLatestLocation, generatenextBlockWithSupply, generateNextBlockWithLocation,
-  sendTransaction, replaceChain, findLatestItemBlock, findLatestItemPool,
-  findItemBlock, findItemPool, getAllSupplies, getAllSuppliesByLocation,
+const { getBlockchain, getLatestLocation, generatenextBlockWithSupply, generateNextBlockWithLocation, generateNextBlockWithLocationAndPublicKey,
+  sendTransaction, replaceChain, findLatestItemBlock, findLatestItemPool, getAdminSignature,
+  findItemBlock, findItemPool, getAllSupplies, getAllSuppliesByLocation, 
   Block
 } = require('./models/Blockchain');
 const { connectToPeers, getSockets, initP2PServer } = require('./socket/p2p');
@@ -68,7 +68,10 @@ else {
   saveToFile([], poolLocation)
 }
 
-if ((process.env.API || "localhost:8000") !== "localhost:8000") {
+let apiAddress = process.env.API || "ws://localhost:8000";
+let adminAddress = process.env.ADMIN || "ws://localhost:8000";
+
+if (apiAddress !== adminAddress) {
   connectToPeers("ws://localhost:8000");
 }
 
@@ -82,7 +85,6 @@ app.use('/connect', function (req, res, next) {
   const base64Credentials = req.headers.authorization.split(' ')[1];
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
-  console.log(password)
   if (!password || password === '') {
     return res.status(401).send("Wrong password");
   }
@@ -122,7 +124,7 @@ app.get('/block/:id', (req, res) => {
     res.send(block);
   }
   else {
-    res.status(400).send('could not find block');
+    res.status(400).send('Could not find block');
   }
 });
 
@@ -194,7 +196,7 @@ app.post('/connect/mineBlockWithSupply', (req, res) => {                 //  all
     const { supplyID } = req.body;
     const newBlock = generatenextBlockWithSupply(supplyID);
     if (newBlock === null) {
-      res.status(400).send('could not generate block');
+      res.status(400).send('Could not generate block');
     } else {
       res.send(newBlock);
     }
@@ -260,7 +262,7 @@ app.post('/connect/sendTransactionContinue', (req, res) => {
 
 app.post('/connect/addLocation', (req, res) => {
   const key = ec.keyFromPublic(getPublicFromWallet(), 'hex');
-  const validSignature = key.verify(getPublicFromWallet(), "3046022100a09fc348404e6a0a8363db3e668b56ddacb556dec388543dff754e9fcb4fb1f4022100db16fb41250cc5726493c766387471761fa5d3269d30b52c014f16c203d74b6a");
+  const validSignature = key.verify(getPublicFromWallet(), getAdminSignature());
   if (!validSignature) {
     return res.status(401).send("Only admin's server is allowed to add location");
   }
@@ -269,9 +271,29 @@ app.post('/connect/addLocation', (req, res) => {
     const { name, location } = req.body;
     const { newBlock, privateKey } = generateNextBlockWithLocation(name, location);
     if (newBlock === null) {
-      res.status(400).send('could not generate block');
+      res.status(400).send('Could not generate block');
     } else {
       res.status(200).send({ privateKey });
+    }
+  } catch (e) {
+    res.status(400).send(e.message);
+  }
+});
+
+app.post('/connect/addLocationWithPublicKey', (req, res) => {
+  const key = ec.keyFromPublic(getPublicFromWallet(), 'hex');
+  const validSignature = key.verify(getPublicFromWallet(), getAdminSignature());
+  if (!validSignature) {
+    return res.status(401).send("Only admin's server is allowed to add location");
+  }
+
+  try {
+    const { name, location, key } = req.body;
+    const { newBlock } = generateNextBlockWithLocationAndPublicKey(name, location, key);
+    if (newBlock === null) {
+      res.status(400).send('Could not generate block');
+    } else {
+      res.status(200).send(newBlock);
     }
   } catch (e) {
     res.status(400).send(e.message);
